@@ -1,0 +1,285 @@
+<html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        ::-webkit-scrollbar { display: none;}
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    <script>tailwind.config = {
+  "theme": {
+    "extend": {
+      "colors": {
+        "dark-bg": "#0f0f23",
+        "dark-surface": "#1a1a2e",
+        "dark-card": "#16213e",
+        "accent": "#e94560",
+        "text-primary": "#f5f7fa",
+        "text-secondary": "#a0a3bd"
+      },
+      "fontFamily": {
+        "sans": [
+          "Inter",
+          "sans-serif"
+        ]
+      }
+    }
+  }
+};</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap"><style>
+  .highlighted-section {
+    outline: 2px solid #3F20FB;
+    background-color: rgba(63, 32, 251, 0.1);
+  }
+
+  .edit-button {
+    position: absolute;
+    z-index: 1000;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  </style></head>
+<body class="bg-dark-bg text-text-primary">
+
+<div id="mobile-container" class="max-w-sm mx-auto bg-dark-bg min-h-screen">
+
+    <header id="header" class="sticky top-0 z-50 bg-dark-surface border-b border-gray-700">
+        <div class="flex items-center justify-between p-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-arrow-left text-text-primary text-lg cursor-pointer"></i>
+                <span class="text-lg font-semibold">Ultimate Gaming Setup Tour 2024</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <i class="fa-solid fa-share text-text-secondary text-lg"></i>
+                <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-lg"></i>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="pb-20">
+        
+        <section id="video-player" class="relative bg-black">
+            <div class="relative w-full h-56">
+                <img class="w-full h-full object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/aa649e2cf6-5643d2e4b3edfb375163.png" alt="gaming setup with rgb lighting and multiple monitors, cinematic style">
+                
+                <div id="video-controls" class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                    <div class="flex items-center space-x-6">
+                        <button class="text-white text-2xl">
+                            <i class="fa-solid fa-backward-step"></i>
+                        </button>
+                        <button id="play-pause-btn" class="bg-white bg-opacity-20 rounded-full p-4 text-white text-2xl">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                        <button class="text-white text-2xl">
+                            <i class="fa-solid fa-forward-step"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="video-overlay" class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-white text-sm">2:34</span>
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-volume-high text-white text-lg"></i>
+                            <i class="fa-solid fa-expand text-white text-lg"></i>
+                        </div>
+                        <span class="text-white text-sm">12:34</span>
+                    </div>
+                    <div class="w-full bg-gray-600 rounded-full h-1">
+                        <div class="bg-accent h-1 rounded-full" style="width: 20%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="video-info" class="p-4 bg-dark-surface">
+            <h1 class="text-lg font-semibold text-text-primary mb-2">Ultimate Gaming Setup Tour 2024 - RGB Everything!</h1>
+            
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2 text-text-secondary text-sm">
+                    <span>1.2M views</span>
+                    <span>•</span>
+                    <span>2 hours ago</span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <div class="flex items-center space-x-1">
+                        <i class="fa-solid fa-thumbs-up text-text-secondary"></i>
+                        <span class="text-text-secondary text-sm">45K</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <i class="fa-solid fa-thumbs-down text-text-secondary"></i>
+                        <span class="text-text-secondary text-sm">1.2K</span>
+                    </div>
+                    <i class="fa-solid fa-bookmark text-text-secondary"></i>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-2.jpg" class="w-10 h-10 rounded-full object-cover">
+                    <div>
+                        <p class="text-text-primary font-medium">TechGamer Pro</p>
+                        <p class="text-text-secondary text-sm">2.5M subscribers</p>
+                    </div>
+                </div>
+                <button class="bg-accent text-white px-6 py-2 rounded-full font-medium">Subscribe</button>
+            </div>
+        </section>
+
+        <section id="video-description" class="p-4">
+            <div class="bg-dark-card rounded-xl p-4">
+                <p class="text-text-secondary text-sm leading-relaxed">
+                    Welcome to my ultimate gaming setup tour for 2024! In this video, I'll show you every piece of my RGB-powered battlestation including my new 4K monitors, custom PC build, and all the accessories that make this setup perfect for streaming and gaming.
+                </p>
+                <button class="text-accent text-sm mt-2">Show more</button>
+            </div>
+        </section>
+
+        <section id="comments-section" class="p-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Comments</h3>
+                <span class="text-text-secondary text-sm">2,847</span>
+            </div>
+
+            <div id="add-comment" class="flex items-center space-x-3 mb-6">
+                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-1.jpg" class="w-8 h-8 rounded-full object-cover">
+                <input type="text" placeholder="Add a comment..." class="flex-1 bg-dark-card border border-gray-600 rounded-full px-4 py-2 text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent">
+            </div>
+
+            <div id="comments-list" class="space-y-4">
+                <div id="comment-1" class="flex space-x-3">
+                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg" class="w-8 h-8 rounded-full object-cover flex-shrink-0">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="text-text-primary text-sm font-medium">@GameMaster_2024</span>
+                            <span class="text-text-secondary text-xs">2 hours ago</span>
+                        </div>
+                        <p class="text-text-secondary text-sm">This setup is absolutely insane! The RGB lighting is perfect. What's the specs on that PC?</p>
+                        <div class="flex items-center space-x-4 mt-2">
+                            <div class="flex items-center space-x-1">
+                                <i class="fa-solid fa-thumbs-up text-text-secondary text-xs"></i>
+                                <span class="text-text-secondary text-xs">127</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <i class="fa-solid fa-thumbs-down text-text-secondary text-xs"></i>
+                                <span class="text-text-secondary text-xs">3</span>
+                            </div>
+                            <button class="text-text-secondary text-xs">Reply</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="comment-2" class="flex space-x-3">
+                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" class="w-8 h-8 rounded-full object-cover flex-shrink-0">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="text-text-primary text-sm font-medium">@TechReviewer</span>
+                            <span class="text-text-secondary text-xs">1 hour ago</span>
+                        </div>
+                        <p class="text-text-secondary text-sm">Amazing cable management! Could you make a tutorial on how to achieve this clean look?</p>
+                        <div class="flex items-center space-x-4 mt-2">
+                            <div class="flex items-center space-x-1">
+                                <i class="fa-solid fa-thumbs-up text-text-secondary text-xs"></i>
+                                <span class="text-text-secondary text-xs">89</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <i class="fa-solid fa-thumbs-down text-text-secondary text-xs"></i>
+                                <span class="text-text-secondary text-xs">1</span>
+                            </div>
+                            <button class="text-text-secondary text-xs">Reply</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="comment-3" class="flex space-x-3">
+                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-8.jpg" class="w-8 h-8 rounded-full object-cover flex-shrink-0">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="text-text-primary text-sm font-medium">@SetupGuru</span>
+                            <span class="text-text-secondary text-xs">45 minutes ago</span>
+                        </div>
+                        <p class="text-text-secondary text-sm">First! Love the content, keep it up! 🔥</p>
+                        <div class="flex items-center space-x-4 mt-2">
+                            <div class="flex items-center space-x-1">
+                                <i class="fa-solid fa-thumbs-up text-text-secondary text-xs"></i>
+                                <span class="text-text-secondary text-xs">34</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <i class="fa-solid fa-thumbs-down text-text-secondary text-xs"></i>
+                                <span class="text-text-secondary text-xs">8</span>
+                            </div>
+                            <button class="text-text-secondary text-xs">Reply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="w-full mt-6 text-accent text-sm font-medium">Show more comments</button>
+        </section>
+
+    </main>
+
+    <nav id="bottom-nav" class="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm bg-dark-surface border-t border-gray-700">
+        <div class="flex items-center justify-around py-3">
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-house text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Home</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-compass text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Explore</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <div class="bg-dark-card rounded-full p-2">
+                    <i class="fa-solid fa-plus text-text-secondary text-sm"></i>
+                </div>
+                <span class="text-text-secondary text-xs">Upload</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-list text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Playlists</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-user text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Profile</span>
+            </div>
+        </div>
+    </nav>
+
+</div>
+
+<script>
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const playIcon = playPauseBtn.querySelector('i');
+    let isPlaying = false;
+
+    playPauseBtn.addEventListener('click', function() {
+        if (isPlaying) {
+            playIcon.className = 'fa-solid fa-play';
+            isPlaying = false;
+        } else {
+            playIcon.className = 'fa-solid fa-pause';
+            isPlaying = true;
+        }
+    });
+
+    document.querySelectorAll('.fa-thumbs-up, .fa-thumbs-down').forEach(button => {
+        button.addEventListener('click', function() {
+            this.classList.toggle('text-accent');
+            this.classList.toggle('text-text-secondary');
+        });
+    });
+</script>
+
+
+</body></html>

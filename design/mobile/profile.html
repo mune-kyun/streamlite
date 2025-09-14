@@ -1,0 +1,287 @@
+<html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script> window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>::-webkit-scrollbar { display: none;}</style>
+    <script>tailwind.config = {
+  "theme": {
+    "extend": {
+      "fontFamily": {
+        "inter": [
+          "Inter",
+          "sans-serif"
+        ],
+        "sans": [
+          "Inter",
+          "sans-serif"
+        ]
+      },
+      "colors": {
+        "dark-bg": "#0f0f23",
+        "dark-surface": "#1a1a2e",
+        "dark-card": "#16213e",
+        "dark-accent": "#e94560",
+        "dark-text": "#f5f5f5",
+        "dark-muted": "#8892b0"
+      }
+    }
+  }
+};</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap"><style>
+      body {
+        font-family: 'Inter', sans-serif !important;
+      }
+      
+      /* Preserve Font Awesome icons */
+      .fa, .fas, .far, .fal, .fab {
+        font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+      }
+    </style><style>
+  .highlighted-section {
+    outline: 2px solid #3F20FB;
+    background-color: rgba(63, 32, 251, 0.1);
+  }
+
+  .edit-button {
+    position: absolute;
+    z-index: 1000;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  </style></head>
+<body class="bg-dark-bg text-dark-text font-sans">
+
+<div id="mobile-app" class="max-w-sm mx-auto bg-dark-bg min-h-screen relative">
+    
+    <header id="header" class="bg-dark-surface px-4 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-gray-700">
+        <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-play text-dark-accent text-2xl"></i>
+            <h1 class="text-xl font-bold">VidStream</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+            <i class="fa-solid fa-cog text-gray-400 text-lg"></i>
+            <i class="fa-solid fa-bell text-gray-400 text-lg"></i>
+        </div>
+    </header>
+
+    <main id="main-content" class="pb-20">
+        
+        <section id="profile-header" class="px-4 py-6 bg-dark-surface border-b border-gray-700">
+            <div class="flex flex-col items-center space-y-4">
+                <div class="relative">
+                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg" class="w-24 h-24 rounded-full border-4 border-dark-accent">
+                    <button class="absolute bottom-0 right-0 bg-dark-accent w-8 h-8 rounded-full flex items-center justify-center">
+                        <i class="fa-solid fa-camera text-sm"></i>
+                    </button>
+                </div>
+                <div class="text-center">
+                    <h2 class="text-xl font-bold">TechGamer Pro</h2>
+                    <p class="text-dark-muted text-sm">@techgamerpro</p>
+                    <p class="text-dark-muted text-xs mt-1">Joined December 2022</p>
+                </div>
+                <div class="flex items-center space-x-6 text-center">
+                    <div>
+                        <p class="font-bold text-lg">2.1M</p>
+                        <p class="text-dark-muted text-xs">Subscribers</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-lg">156</p>
+                        <p class="text-dark-muted text-xs">Videos</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-lg">45.2M</p>
+                        <p class="text-dark-muted text-xs">Views</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="profile-actions" class="px-4 py-4 bg-dark-surface border-b border-gray-700">
+            <div class="flex space-x-3">
+                <button class="flex-1 bg-dark-accent py-2 px-4 rounded-xl font-medium text-center">
+                    <i class="fa-solid fa-edit mr-2"></i>Edit Profile
+                </button>
+                <button class="flex-1 bg-dark-card border border-gray-600 py-2 px-4 rounded-xl font-medium text-center">
+                    <i class="fa-solid fa-share mr-2"></i>Share
+                </button>
+            </div>
+            <div class="mt-3">
+                <button id="logout-btn" class="w-full bg-red-600 hover:bg-red-700 py-2 px-4 rounded-xl font-medium text-center transition-colors">
+                    <i class="fa-solid fa-sign-out-alt mr-2"></i>Logout
+                </button>
+            </div>
+        </section>
+
+        <section id="profile-tabs" class="px-4 py-4">
+            <div class="flex space-x-1 bg-dark-card rounded-xl p-1">
+                <button id="videos-tab" class="flex-1 py-2 px-3 rounded-lg bg-dark-accent text-sm font-medium">Videos</button>
+                <button id="playlists-tab" class="flex-1 py-2 px-3 rounded-lg text-gray-400 text-sm font-medium">Playlists</button>
+            </div>
+        </section>
+
+        <section id="videos-content" class="px-4 pb-6">
+            <div class="grid grid-cols-2 gap-3">
+                
+                <div id="profile-video-1" class="bg-dark-surface rounded-xl overflow-hidden border border-gray-700">
+                    <div class="relative">
+                        <img class="w-full h-24 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/bb3ae30a67-0ee62171badb22c59956.png" alt="gaming setup">
+                        <div class="absolute bottom-1 right-1 bg-black bg-opacity-70 px-1 py-0.5 rounded text-xs">
+                            12:34
+                        </div>
+                    </div>
+                    <div class="p-2">
+                        <h3 class="font-medium text-xs leading-tight mb-1">Ultimate Gaming Setup Tour 2024</h3>
+                        <div class="text-dark-muted text-xs">
+                            <span>2.1M views</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profile-video-2" class="bg-dark-surface rounded-xl overflow-hidden border border-gray-700">
+                    <div class="relative">
+                        <img class="w-full h-24 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/f96408a8ae-7c9ead945a03427760f1.png" alt="gaming peripherals review, mechanical keyboard and gaming mouse, RGB lighting">
+                        <div class="absolute bottom-1 right-1 bg-black bg-opacity-70 px-1 py-0.5 rounded text-xs">
+                            18:45
+                        </div>
+                    </div>
+                    <div class="p-2">
+                        <h3 class="font-medium text-xs leading-tight mb-1">Best Gaming Peripherals 2024</h3>
+                        <div class="text-dark-muted text-xs">
+                            <span>1.8M views</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profile-video-3" class="bg-dark-surface rounded-xl overflow-hidden border border-gray-700">
+                    <div class="relative">
+                        <img class="w-full h-24 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/89f3e19e8b-8b99d7fc9458a3810395.png" alt="graphics card benchmark, gaming PC build, high-tech components">
+                        <div class="absolute bottom-1 right-1 bg-black bg-opacity-70 px-1 py-0.5 rounded text-xs">
+                            25:12
+                        </div>
+                    </div>
+                    <div class="p-2">
+                        <h3 class="font-medium text-xs leading-tight mb-1">RTX 4090 vs RTX 4080 Gaming Test</h3>
+                        <div class="text-dark-muted text-xs">
+                            <span>3.2M views</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profile-video-4" class="bg-dark-surface rounded-xl overflow-hidden border border-gray-700">
+                    <div class="relative">
+                        <img class="w-full h-24 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/66d8ac3632-7ddbe1bd382b8a4cfe7e.png" alt="gaming chair setup, ergonomic office chair, modern gaming room">
+                        <div class="absolute bottom-1 right-1 bg-black bg-opacity-70 px-1 py-0.5 rounded text-xs">
+                            9:33
+                        </div>
+                    </div>
+                    <div class="p-2">
+                        <h3 class="font-medium text-xs leading-tight mb-1">Ultimate Gaming Chair Review</h3>
+                        <div class="text-dark-muted text-xs">
+                            <span>945K views</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profile-video-5" class="bg-dark-surface rounded-xl overflow-hidden border border-gray-700">
+                    <div class="relative">
+                        <img class="w-full h-24 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/a17b25d84e-8df7526798fe3f2f19dc.png" alt="gaming laptop comparison, multiple laptops on desk, tech review setup">
+                        <div class="absolute bottom-1 right-1 bg-black bg-opacity-70 px-1 py-0.5 rounded text-xs">
+                            22:18
+                        </div>
+                    </div>
+                    <div class="p-2">
+                        <h3 class="font-medium text-xs leading-tight mb-1">Best Gaming Laptops Under $2000</h3>
+                        <div class="text-dark-muted text-xs">
+                            <span>1.5M views</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profile-video-6" class="bg-dark-surface rounded-xl overflow-hidden border border-gray-700">
+                    <div class="relative">
+                        <img class="w-full h-24 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/6e666ff5aa-c09e44be571355153a22.png" alt="streaming setup, microphone and camera equipment, content creator workspace">
+                        <div class="absolute bottom-1 right-1 bg-black bg-opacity-70 px-1 py-0.5 rounded text-xs">
+                            16:27
+                        </div>
+                    </div>
+                    <div class="p-2">
+                        <h3 class="font-medium text-xs leading-tight mb-1">Perfect Streaming Setup Guide</h3>
+                        <div class="text-dark-muted text-xs">
+                            <span>2.8M views</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="load-more" class="mt-6 text-center">
+                <button class="bg-dark-card border border-gray-600 py-2 px-6 rounded-xl font-medium">
+                    Load More Videos
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <nav id="bottom-navigation" class="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm bg-dark-surface border-t border-gray-700 px-4 py-2">
+        <div class="flex items-center justify-around">
+            <button class="flex flex-col items-center space-y-1 text-gray-400">
+                <i class="fa-solid fa-home text-lg"></i>
+                <span class="text-xs">Home</span>
+            </button>
+            <button class="flex flex-col items-center space-y-1 text-gray-400">
+                <i class="fa-solid fa-compass text-lg"></i>
+                <span class="text-xs">Explore</span>
+            </button>
+            <button class="flex flex-col items-center space-y-1 text-gray-400">
+                <i class="fa-solid fa-plus-circle text-2xl"></i>
+                <span class="text-xs">Upload</span>
+            </button>
+            <button class="flex flex-col items-center space-y-1 text-gray-400">
+                <i class="fa-solid fa-bookmark text-lg"></i>
+                <span class="text-xs">Library</span>
+            </button>
+            <button class="flex flex-col items-center space-y-1 text-dark-accent">
+                <i class="fa-solid fa-user text-lg"></i>
+                <span class="text-xs">Profile</span>
+            </button>
+        </div>
+    </nav>
+
+</div>
+
+<script>
+document.getElementById('videos-tab').addEventListener('click', function() {
+    this.classList.add('bg-dark-accent');
+    this.classList.remove('text-gray-400');
+    document.getElementById('playlists-tab').classList.remove('bg-dark-accent');
+    document.getElementById('playlists-tab').classList.add('text-gray-400');
+});
+
+document.getElementById('playlists-tab').addEventListener('click', function() {
+    this.classList.add('bg-dark-accent');
+    this.classList.remove('text-gray-400');
+    document.getElementById('videos-tab').classList.remove('bg-dark-accent');
+    document.getElementById('videos-tab').classList.add('text-gray-400');
+});
+
+document.getElementById('logout-btn').addEventListener('click', function() {
+    if (confirm('Are you sure you want to logout?')) {
+        // Redirect to login page or perform logout action
+        window.location.href = 'login.html';
+    }
+});
+</script>
+
+
+</body></html>

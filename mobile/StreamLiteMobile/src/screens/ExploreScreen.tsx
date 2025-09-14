@@ -1,0 +1,399 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  StatusBar,
+  TextInput,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext';
+import { videoService } from '../services/videoService';
+import { Video, Category } from '../types/video';
+import VideoThumbnail from '../components/VideoThumbnail';
+import { darkTheme } from '../styles/theme';
+
+interface ExploreScreenProps {
+  navigation: any;
+  route?: {
+    params?: {
+      searchQuery?: string;
+    };
+  };
+}
+
+export const ExploreScreen: React.FC<ExploreScreenProps> = ({ navigation, route }) => {
+  const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(route?.params?.searchQuery || '');
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [searchFocused, setSearchFocused] = useState(false);
+
+  const loadData = async () => {
+    try {
+      // Load videos and categories in parallel
+      const [videosResponse, categoriesResponse] = await Promise.all([
+        videoService.getVideos({ 
+          limit: 20,
+          search: searchQuery || undefined,
+          category: selectedCategory || undefined
+        }),
+        videoService.getCategories()
+      ]);
+
+      if (videosResponse.success && videosResponse.data) {
+        setVideos(videosResponse.data.videos);
+      }
+
+      if (categoriesResponse.success && categoriesResponse.data) {
+        setCategories(categoriesResponse.data);
+      }
+    } catch (error) {
+      console.error('Error loading explore data:', error);
+      Alert.alert('Error', 'Failed to load content. Please try again.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [searchQuery, selectedCategory]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadData();
+  };
+
+  const navigateToVideo = (video: Video) => {
+    navigation.navigate('VideoPlayer', { video });
+  };
+
+  const navigateToNotifications = () => {
+    Alert.alert('Notifications', 'Notifications feature coming soon!');
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      loadData();
+    }
+  };
+
+  const handleCategorySelect = (categoryId: number | null) => {
+    setSelectedCategory(categoryId);
+  };
+
+  const renderCategoryPill = (category: Category | null, isSelected: boolean) => {
+    const isAll = category === null;
+    return (
+      <TouchableOpacity
+        key={isAll ? 'all' : category?.id}
+        style={[
+          styles.categoryPill,
+          isSelected ? styles.categoryPillActive : styles.categoryPillInactive
+        ]}
+        onPress={() => handleCategorySelect(isAll ? null : category?.id || null)}
+      >
+        <Text style={[
+          styles.categoryPillText,
+          isSelected ? styles.categoryPillTextActive : styles.categoryPillTextInactive
+        ]}>
+          {isAll ? 'All' : category?.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={darkTheme.colors.accent} />
+        <Text style={styles.loadingText}>Loading content...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={darkTheme.colors.surface} />
+      
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <View style={styles.headerTop}>
+          <View style={styles.titleContainer}>
+            <Ionicons 
+              name="compass" 
+              size={20} 
+              color={darkTheme.colors.accent} 
+              style={styles.titleIcon}
+            />
+            <Text style={styles.titleText}>Explore</Text>
+          </View>
+          
+          <View style={styles.headerActions}>
+            <TouchableOpacity 
+              style={styles.headerButton}
+              onPress={navigateToNotifications}
+            >
+              <Ionicons 
+                name="notifications-outline" 
+                size={18} 
+                color={darkTheme.colors.textSecondary} 
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      {/* Search Section */}
+      <View style={styles.searchSection}>
+        <View style={[
+          styles.searchContainer,
+          searchFocused && styles.searchContainerFocused
+        ]}>
+          <Ionicons 
+            name="search" 
+            size={16} 
+            color={darkTheme.colors.textSecondary} 
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search videos, channels..."
+            placeholderTextColor={darkTheme.colors.textSecondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onSubmitEditing={handleSearch}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
+            returnKeyType="search"
+          />
+        </View>
+      </View>
+
+      {/* Category Pills */}
+      <View style={styles.categoriesSection}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          {renderCategoryPill(null, selectedCategory === null)}
+          {categories.map((category) => 
+            renderCategoryPill(category, selectedCategory === category.id)
+          )}
+        </ScrollView>
+      </View>
+
+      {/* Main Content */}
+      <ScrollView 
+        style={styles.content}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor={darkTheme.colors.accent}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.contentContainer}>
+          {videos.length > 0 ? (
+            <View style={styles.videoFeed}>
+              {videos.map((video, index) => (
+                <View key={`video-${video.id}-${index}`} style={styles.videoCardContainer}>
+                  <VideoThumbnail
+                    video={video}
+                    onPress={() => navigateToVideo(video)}
+                    showTitle={true}
+                    showDuration={true}
+                    showViewCount={true}
+                    showChannelInfo={true}
+                    isLive={false}
+                    style={styles.videoCard}
+                  />
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons 
+                name="compass-outline" 
+                size={48} 
+                color={darkTheme.colors.textSecondary} 
+                style={styles.emptyStateIcon}
+              />
+              <Text style={styles.emptyStateText}>
+                {searchQuery ? 'No videos found' : 'No videos available'}
+              </Text>
+              <Text style={styles.emptyStateSubtext}>
+                {searchQuery ? 'Try a different search term' : 'Check back later for new content!'}
+              </Text>
+            </View>
+          )}
+        </View>
+        
+        {/* Bottom padding for tab bar */}
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: darkTheme.colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: darkTheme.colors.background,
+  },
+  loadingText: {
+    marginTop: darkTheme.spacing.lg,
+    fontSize: darkTheme.fontSize.lg,
+    color: darkTheme.colors.textSecondary,
+  },
+  header: {
+    backgroundColor: darkTheme.colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: darkTheme.colors.border,
+    paddingHorizontal: darkTheme.spacing.lg,
+    paddingBottom: darkTheme.spacing.lg,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  titleIcon: {
+    marginRight: darkTheme.spacing.md,
+  },
+  titleText: {
+    fontSize: darkTheme.fontSize.lg,
+    fontWeight: '600',
+    color: darkTheme.colors.textPrimary,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
+    padding: darkTheme.spacing.sm,
+    marginLeft: darkTheme.spacing.md,
+  },
+  searchSection: {
+    paddingHorizontal: darkTheme.spacing.lg,
+    paddingVertical: darkTheme.spacing.lg,
+    backgroundColor: darkTheme.colors.background,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: darkTheme.colors.card,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: darkTheme.colors.border,
+    paddingHorizontal: darkTheme.spacing.lg,
+    paddingVertical: darkTheme.spacing.md,
+  },
+  searchContainerFocused: {
+    borderColor: darkTheme.colors.accent,
+  },
+  searchIcon: {
+    marginRight: darkTheme.spacing.md,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: darkTheme.fontSize.md,
+    color: darkTheme.colors.textPrimary,
+    padding: 0,
+  },
+  categoriesSection: {
+    backgroundColor: darkTheme.colors.background,
+    paddingBottom: darkTheme.spacing.lg,
+  },
+  categoriesContainer: {
+    paddingHorizontal: darkTheme.spacing.lg,
+    gap: darkTheme.spacing.md,
+  },
+  categoryPill: {
+    paddingHorizontal: darkTheme.spacing.lg,
+    paddingVertical: darkTheme.spacing.sm,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  categoryPillActive: {
+    backgroundColor: darkTheme.colors.accent,
+    borderColor: darkTheme.colors.accent,
+  },
+  categoryPillInactive: {
+    backgroundColor: darkTheme.colors.card,
+    borderColor: darkTheme.colors.border,
+  },
+  categoryPillText: {
+    fontSize: darkTheme.fontSize.sm,
+    fontWeight: '500',
+  },
+  categoryPillTextActive: {
+    color: '#ffffff',
+  },
+  categoryPillTextInactive: {
+    color: darkTheme.colors.textSecondary,
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingHorizontal: darkTheme.spacing.lg,
+  },
+  videoFeed: {
+    gap: darkTheme.spacing.lg,
+  },
+  videoCardContainer: {
+    backgroundColor: darkTheme.colors.card,
+    borderRadius: darkTheme.borderRadius.lg,
+    overflow: 'hidden',
+  },
+  videoCard: {
+    marginBottom: 0,
+    backgroundColor: 'transparent',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: darkTheme.spacing.xxxl,
+  },
+  emptyStateIcon: {
+    fontSize: 48,
+    marginBottom: darkTheme.spacing.lg,
+  },
+  emptyStateText: {
+    fontSize: darkTheme.fontSize.xl,
+    fontWeight: '600',
+    color: darkTheme.colors.textPrimary,
+    marginBottom: darkTheme.spacing.sm,
+    textAlign: 'center',
+  },
+  emptyStateSubtext: {
+    fontSize: darkTheme.fontSize.lg,
+    color: darkTheme.colors.textSecondary,
+    textAlign: 'center',
+  },
+});

@@ -1,0 +1,298 @@
+<html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        ::-webkit-scrollbar { display: none;}
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    <script>tailwind.config = {
+  "theme": {
+    "extend": {
+      "colors": {
+        "dark-bg": "#0f0f23",
+        "dark-surface": "#1a1a2e",
+        "dark-card": "#16213e",
+        "accent": "#e94560",
+        "text-primary": "#f5f7fa",
+        "text-secondary": "#a0a3bd"
+      },
+      "fontFamily": {
+        "sans": [
+          "Inter",
+          "sans-serif"
+        ]
+      }
+    }
+  }
+};</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap"><style>
+  .highlighted-section {
+    outline: 2px solid #3F20FB;
+    background-color: rgba(63, 32, 251, 0.1);
+  }
+
+  .edit-button {
+    position: absolute;
+    z-index: 1000;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  </style></head>
+<body class="bg-dark-bg text-text-primary">
+
+<div id="mobile-container" class="max-w-sm mx-auto bg-dark-bg min-h-screen">
+
+    <header id="header" class="sticky top-0 z-50 bg-dark-surface border-b border-gray-700">
+        <div class="flex items-center justify-between p-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-list text-accent text-xl"></i>
+                <span class="text-lg font-semibold">My Playlists</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-search text-text-secondary text-lg cursor-pointer"></i>
+                <i class="fa-solid fa-plus text-text-secondary text-lg cursor-pointer"></i>
+            </div>
+        </div>
+    </header>
+
+    <main id="playlists-content" class="pb-20">
+        
+        <section id="create-playlist-section" class="p-4">
+            <div class="bg-dark-card rounded-lg p-4 border border-gray-600 border-dashed cursor-pointer hover:border-accent transition-colors">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-accent bg-opacity-20 rounded-full p-3">
+                        <i class="fa-solid fa-plus text-accent text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-text-primary font-medium">Create New Playlist</h3>
+                        <p class="text-text-secondary text-sm">Organize your favorite videos</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="playlists-list" class="space-y-3 px-4">
+            
+            <div id="playlist-1" class="bg-dark-card rounded-lg overflow-hidden">
+                <div class="flex">
+                    <div class="relative w-24 h-16">
+                        <img class="w-full h-full object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/59b6b24a9a-12fcf13200476f83cf97.png" alt="Gaming playlist thumbnail">
+                        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                            <i class="fa-solid fa-play text-white text-sm"></i>
+                        </div>
+                        <div class="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded">
+                            12
+                        </div>
+                    </div>
+                    <div class="flex-1 p-3">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-text-primary font-medium text-sm mb-1">Gaming Highlights</h3>
+                                <p class="text-text-secondary text-xs mb-1">12 videos • Private</p>
+                                <p class="text-text-secondary text-xs">Created 2 weeks ago</p>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-sm cursor-pointer"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="playlist-2" class="bg-dark-card rounded-lg overflow-hidden">
+                <div class="flex">
+                    <div class="relative w-24 h-16">
+                        <img class="w-full h-full object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/0912554b0b-ce0dedfb82e4ee376903.png" alt="Cooking playlist thumbnail">
+                        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                            <i class="fa-solid fa-play text-white text-sm"></i>
+                        </div>
+                        <div class="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded">
+                            8
+                        </div>
+                    </div>
+                    <div class="flex-1 p-3">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-text-primary font-medium text-sm mb-1">Quick Recipes</h3>
+                                <p class="text-text-secondary text-xs mb-1">8 videos • Public</p>
+                                <p class="text-text-secondary text-xs">Created 1 month ago</p>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-sm cursor-pointer"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="playlist-3" class="bg-dark-card rounded-lg overflow-hidden">
+                <div class="flex">
+                    <div class="relative w-24 h-16">
+                        <img class="w-full h-full object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/30af91d36b-37531c504d4acfa6a633.png" alt="Music playlist thumbnail">
+                        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                            <i class="fa-solid fa-play text-white text-sm"></i>
+                        </div>
+                        <div class="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded">
+                            25
+                        </div>
+                    </div>
+                    <div class="flex-1 p-3">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-text-primary font-medium text-sm mb-1">Chill Music</h3>
+                                <p class="text-text-secondary text-xs mb-1">25 videos • Public</p>
+                                <p class="text-text-secondary text-xs">Created 3 months ago</p>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-sm cursor-pointer"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="playlist-4" class="bg-dark-card rounded-lg overflow-hidden">
+                <div class="flex">
+                    <div class="relative w-24 h-16">
+                        <img class="w-full h-full object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/2ed0c432d7-a3060f57ccd8a3b667ee.png" alt="Tech reviews playlist thumbnail">
+                        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                            <i class="fa-solid fa-play text-white text-sm"></i>
+                        </div>
+                        <div class="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded">
+                            15
+                        </div>
+                    </div>
+                    <div class="flex-1 p-3">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-text-primary font-medium text-sm mb-1">Tech Reviews</h3>
+                                <p class="text-text-secondary text-xs mb-1">15 videos • Private</p>
+                                <p class="text-text-secondary text-xs">Created 1 week ago</p>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-sm cursor-pointer"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="playlist-5" class="bg-dark-card rounded-lg overflow-hidden">
+                <div class="flex">
+                    <div class="relative w-24 h-16">
+                        <img class="w-full h-full object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/c8eeef6369-b2887d3a53593c002a26.png" alt="Workout playlist thumbnail">
+                        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                            <i class="fa-solid fa-play text-white text-sm"></i>
+                        </div>
+                        <div class="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded">
+                            20
+                        </div>
+                    </div>
+                    <div class="flex-1 p-3">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-text-primary font-medium text-sm mb-1">Workout Routines</h3>
+                                <p class="text-text-secondary text-xs mb-1">20 videos • Public</p>
+                                <p class="text-text-secondary text-xs">Created 2 months ago</p>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-sm cursor-pointer"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="playlist-6" class="bg-dark-card rounded-lg overflow-hidden">
+                <div class="flex">
+                    <div class="relative w-24 h-16">
+                        <img class="w-full h-full object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/c2627f18d5-68ce6658967926d085bf.png" alt="Travel playlist thumbnail">
+                        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                            <i class="fa-solid fa-play text-white text-sm"></i>
+                        </div>
+                        <div class="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded">
+                            7
+                        </div>
+                    </div>
+                    <div class="flex-1 p-3">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-text-primary font-medium text-sm mb-1">Travel Adventures</h3>
+                                <p class="text-text-secondary text-xs mb-1">7 videos • Private</p>
+                                <p class="text-text-secondary text-xs">Created 5 days ago</p>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-sm cursor-pointer"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <section id="empty-state" class="hidden px-4 py-12 text-center">
+            <div class="text-text-secondary">
+                <i class="fa-solid fa-list text-4xl mb-4 opacity-50"></i>
+                <h3 class="text-text-primary font-medium mb-2">No playlists yet</h3>
+                <p class="text-sm mb-4">Create your first playlist to organize your favorite videos</p>
+                <button class="bg-accent text-white px-6 py-2 rounded-full text-sm font-medium">
+                    Create Playlist
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <nav id="bottom-nav" class="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm bg-dark-surface border-t border-gray-700">
+        <div class="flex items-center justify-around py-3">
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-house text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Home</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-compass text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Explore</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <div class="bg-dark-card rounded-full p-2 border border-gray-600">
+                    <i class="fa-solid fa-plus text-text-secondary text-sm"></i>
+                </div>
+                <span class="text-text-secondary text-xs">Upload</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-list text-accent text-lg"></i>
+                <span class="text-accent text-xs font-medium">Playlists</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-user text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Profile</span>
+            </div>
+        </div>
+    </nav>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const createPlaylistBtn = document.querySelector('#create-playlist-section > div');
+    createPlaylistBtn.addEventListener('click', function() {
+        this.classList.add('scale-95');
+        setTimeout(() => {
+            this.classList.remove('scale-95');
+        }, 150);
+    });
+
+    const playlistCards = document.querySelectorAll('[id^="playlist-"]');
+    playlistCards.forEach(card => {
+        card.addEventListener('click', function() {
+            this.classList.add('bg-opacity-80');
+            setTimeout(() => {
+                this.classList.remove('bg-opacity-80');
+            }, 150);
+        });
+    });
+});
+</script>
+
+
+</body></html>

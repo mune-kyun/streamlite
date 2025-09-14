@@ -1,0 +1,201 @@
+<html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        ::-webkit-scrollbar { display: none;}
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    <script>tailwind.config = {
+  "theme": {
+    "extend": {
+      "colors": {
+        "dark-bg": "#0f0f23",
+        "dark-surface": "#1a1a2e",
+        "dark-card": "#16213e",
+        "accent": "#e94560",
+        "text-primary": "#f5f7fa",
+        "text-secondary": "#a0a3bd"
+      },
+      "fontFamily": {
+        "sans": [
+          "Inter",
+          "sans-serif"
+        ]
+      }
+    }
+  }
+};</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap"><style>
+  .highlighted-section {
+    outline: 2px solid #3F20FB;
+    background-color: rgba(63, 32, 251, 0.1);
+  }
+
+  .edit-button {
+    position: absolute;
+    z-index: 1000;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  </style></head>
+<body class="bg-dark-bg text-text-primary">
+
+<div id="mobile-container" class="max-w-sm mx-auto bg-dark-bg min-h-screen">
+
+    <header id="header" class="sticky top-0 z-50 bg-dark-surface border-b border-gray-700">
+        <div class="flex items-center justify-between p-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-brands fa-youtube text-accent text-2xl"></i>
+                <span class="text-xl font-bold">VidStream</span>
+            </div>
+            <button id="close-signup" class="text-text-secondary hover:text-text-primary">
+                <i class="fa-solid fa-times text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <main id="signup-content" class="flex-1 px-6 py-8">
+        
+        <section id="signup-hero" class="text-center mb-8">
+            <div class="w-20 h-20 bg-accent bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-user-plus text-accent text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-text-primary mb-2">Join VidStream</h1>
+            <p class="text-text-secondary text-sm">Create your account to start sharing and discovering amazing videos</p>
+        </section>
+
+        <section id="signup-form" class="space-y-6">
+            
+            <div id="email-field" class="space-y-2">
+                <label for="email" class="block text-sm font-medium text-text-primary">Email Address</label>
+                <div class="relative">
+                    <input type="email" id="email" name="email" placeholder="Enter your email" class="w-full bg-dark-card border border-gray-600 rounded-xl px-4 py-4 pl-12 text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors">
+                    <i class="fa-solid fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+                </div>
+            </div>
+
+            <div id="password-field" class="space-y-2">
+                <label for="password" class="block text-sm font-medium text-text-primary">Password</label>
+                <div class="relative">
+                    <input type="password" id="password" name="password" placeholder="Create a password" class="w-full bg-dark-card border border-gray-600 rounded-xl px-4 py-4 pl-12 pr-12 text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors">
+                    <i class="fa-solid fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+                    <button type="button" id="toggle-password" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-text-secondary hover:text-text-primary">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+                <div id="password-strength" class="flex space-x-1 mt-2">
+                    <div class="h-1 bg-gray-600 rounded-full flex-1"></div>
+                    <div class="h-1 bg-gray-600 rounded-full flex-1"></div>
+                    <div class="h-1 bg-gray-600 rounded-full flex-1"></div>
+                    <div class="h-1 bg-gray-600 rounded-full flex-1"></div>
+                </div>
+                <p class="text-xs text-text-secondary">Use 8+ characters with letters, numbers &amp; symbols</p>
+            </div>
+
+            <div id="confirm-password-field" class="space-y-2">
+                <label for="confirm-password" class="block text-sm font-medium text-text-primary">Confirm Password</label>
+                <div class="relative">
+                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" class="w-full bg-dark-card border border-gray-600 rounded-xl px-4 py-4 pl-12 text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors">
+                    <i class="fa-solid fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+                </div>
+            </div>
+
+            <div id="terms-checkbox" class="flex items-start space-x-3">
+                <input type="checkbox" id="terms" name="terms" class="mt-1 w-4 h-4 text-accent bg-dark-card border-gray-600 rounded focus:ring-accent focus:ring-2">
+                <label for="terms" class="text-sm text-text-secondary">
+                    I agree to the <span class="text-accent hover:underline cursor-pointer">Terms of Service</span> and <span class="text-accent hover:underline cursor-pointer">Privacy Policy</span>
+                </label>
+            </div>
+
+            <button id="signup-button" type="submit" class="w-full bg-accent hover:bg-red-600 text-white font-semibold py-4 px-6 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-dark-bg">
+                Create Account
+            </button>
+
+        </section>
+
+        <section id="social-signup" class="mt-8">
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-600"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-4 bg-dark-bg text-text-secondary">Or continue with</span>
+                </div>
+            </div>
+
+            <div id="social-buttons" class="mt-6 space-y-3">
+                <button class="w-full flex items-center justify-center space-x-3 bg-dark-card hover:bg-gray-700 border border-gray-600 rounded-xl py-3 px-4 transition-colors">
+                    <i class="fa-brands fa-google text-red-500 text-lg"></i>
+                    <span class="text-text-primary font-medium">Continue with Google</span>
+                </button>
+                
+                <button class="w-full flex items-center justify-center space-x-3 bg-dark-card hover:bg-gray-700 border border-gray-600 rounded-xl py-3 px-4 transition-colors">
+                    <i class="fa-brands fa-apple text-white text-lg"></i>
+                    <span class="text-text-primary font-medium">Continue with Apple</span>
+                </button>
+            </div>
+        </section>
+
+        <section id="login-link" class="mt-8 text-center">
+            <p class="text-text-secondary text-sm">
+                Already have an account? 
+                <span class="text-accent hover:underline font-medium cursor-pointer">Sign In</span>
+            </p>
+        </section>
+
+    </main>
+
+</div>
+
+<script>
+document.getElementById('toggle-password').addEventListener('click', function() {
+    const passwordInput = document.getElementById('password');
+    const icon = this.querySelector('i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+});
+
+document.getElementById('password').addEventListener('input', function() {
+    const password = this.value;
+    const strengthBars = document.querySelectorAll('#password-strength div');
+    let strength = 0;
+    
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    
+    strengthBars.forEach((bar, index) => {
+        if (index < strength) {
+            if (strength <= 2) bar.className = 'h-1 bg-red-500 rounded-full flex-1';
+            else if (strength <= 3) bar.className = 'h-1 bg-yellow-500 rounded-full flex-1';
+            else bar.className = 'h-1 bg-green-500 rounded-full flex-1';
+        } else {
+            bar.className = 'h-1 bg-gray-600 rounded-full flex-1';
+        }
+    });
+});
+</script>
+
+
+</body></html>

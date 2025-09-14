@@ -1,0 +1,229 @@
+<html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        ::-webkit-scrollbar { display: none;}
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    <script>tailwind.config = {
+  "theme": {
+    "extend": {
+      "colors": {
+        "dark-bg": "#0f0f23",
+        "dark-surface": "#1a1a2e",
+        "dark-card": "#16213e",
+        "accent": "#e94560",
+        "text-primary": "#f5f7fa",
+        "text-secondary": "#a0a3bd"
+      },
+      "fontFamily": {
+        "sans": [
+          "Inter",
+          "sans-serif"
+        ]
+      }
+    }
+  }
+};</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap"><style>
+  .highlighted-section {
+    outline: 2px solid #3F20FB;
+    background-color: rgba(63, 32, 251, 0.1);
+  }
+
+  .edit-button {
+    position: absolute;
+    z-index: 1000;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  </style></head>
+<body class="bg-dark-bg text-text-primary">
+
+<div id="mobile-container" class="max-w-sm mx-auto bg-dark-bg min-h-screen">
+
+    <header id="header" class="sticky top-0 z-50 bg-dark-surface border-b border-gray-700">
+        <div class="flex items-center justify-between p-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-brands fa-youtube text-accent text-2xl"></i>
+                <span class="text-xl font-bold">VidStream</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <i class="fa-solid fa-bell text-text-secondary text-lg"></i>
+                <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-1.jpg" class="w-8 h-8 rounded-full object-cover">
+            </div>
+        </div>
+        
+        <div id="search-bar" class="px-4 pb-4">
+            <div class="relative">
+                <input type="text" placeholder="Search videos..." class="w-full bg-dark-card border border-gray-600 rounded-xl px-4 py-3 pl-12 text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent">
+                <i class="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-text-secondary"></i>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="pb-20">
+        
+        <section id="featured-videos" class="p-4">
+            <h2 class="text-lg font-semibold mb-4">Featured Videos</h2>
+            
+            <div id="video-list" class="space-y-4">
+                
+                <div id="video-card-1" class="bg-dark-card rounded-xl overflow-hidden">
+                    <div class="relative">
+                        <img class="w-full h-48 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/aa649e2cf6-60b00d5ef8ba6380bf85.png" alt="gaming setup with rgb lighting and multiple monitors, cinematic style">
+                        <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">12:34</div>
+                        <div class="absolute top-2 left-2 bg-accent text-white text-xs px-2 py-1 rounded-full">LIVE</div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex space-x-3">
+                            <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-2.jpg" class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                            <div class="flex-1">
+                                <h3 class="font-medium text-text-primary line-clamp-2 mb-1">Ultimate Gaming Setup Tour 2024 - RGB Everything!</h3>
+                                <p class="text-text-secondary text-sm">TechGamer Pro</p>
+                                <div class="flex items-center space-x-3 text-text-secondary text-xs mt-1">
+                                    <span>1.2M views</span>
+                                    <span>•</span>
+                                    <span>2 hours ago</span>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical text-text-secondary"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="video-card-2" class="bg-dark-card rounded-xl overflow-hidden">
+                    <div class="relative">
+                        <img class="w-full h-48 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/d64078fdcf-21e62875585a0c9d37cb.png" alt="cooking delicious pasta in modern kitchen, food photography style">
+                        <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">8:45</div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex space-x-3">
+                            <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                            <div class="flex-1">
+                                <h3 class="font-medium text-text-primary line-clamp-2 mb-1">Perfect Pasta in 10 Minutes - Chef's Secret Recipe</h3>
+                                <p class="text-text-secondary text-sm">Cooking with Sarah</p>
+                                <div class="flex items-center space-x-3 text-text-secondary text-xs mt-1">
+                                    <span>856K views</span>
+                                    <span>•</span>
+                                    <span>1 day ago</span>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical text-text-secondary"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="video-card-3" class="bg-dark-card rounded-xl overflow-hidden">
+                    <div class="relative">
+                        <img class="w-full h-48 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/62513645b1-257af6b09e393bece365.png" alt="travel vlog beautiful mountain landscape sunset, cinematic travel photography">
+                        <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">15:22</div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex space-x-3">
+                            <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg" class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                            <div class="flex-1">
+                                <h3 class="font-medium text-text-primary line-clamp-2 mb-1">Epic Mountain Adventure - Hiking the Swiss Alps</h3>
+                                <p class="text-text-secondary text-sm">Adventure Seekers</p>
+                                <div class="flex items-center space-x-3 text-text-secondary text-xs mt-1">
+                                    <span>2.1M views</span>
+                                    <span>•</span>
+                                    <span>3 days ago</span>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical text-text-secondary"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="video-card-4" class="bg-dark-card rounded-xl overflow-hidden">
+                    <div class="relative">
+                        <img class="w-full h-48 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/361ad60021-7f282d2a5ed668773156.png" alt="music studio recording session with instruments and mixing board">
+                        <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">4:32</div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex space-x-3">
+                            <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-8.jpg" class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                            <div class="flex-1">
+                                <h3 class="font-medium text-text-primary line-clamp-2 mb-1">Behind the Scenes: Recording My New Album</h3>
+                                <p class="text-text-secondary text-sm">Music Producer Mike</p>
+                                <div class="flex items-center space-x-3 text-text-secondary text-xs mt-1">
+                                    <span>445K views</span>
+                                    <span>•</span>
+                                    <span>5 days ago</span>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical text-text-secondary"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="video-card-5" class="bg-dark-card rounded-xl overflow-hidden">
+                    <div class="relative">
+                        <img class="w-full h-48 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/2724032262-b9653ce4a7c63470ebbc.png" alt="fitness workout gym session with modern equipment, motivational lighting">
+                        <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">22:15</div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex space-x-3">
+                            <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-6.jpg" class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                            <div class="flex-1">
+                                <h3 class="font-medium text-text-primary line-clamp-2 mb-1">Full Body Workout - No Equipment Needed!</h3>
+                                <p class="text-text-secondary text-sm">FitLife with Emma</p>
+                                <div class="flex items-center space-x-3 text-text-secondary text-xs mt-1">
+                                    <span>1.8M views</span>
+                                    <span>•</span>
+                                    <span>1 week ago</span>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical text-text-secondary"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <nav id="bottom-nav" class="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm bg-dark-surface border-t border-gray-700">
+        <div class="flex items-center justify-around py-3">
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-house text-accent text-lg"></i>
+                <span class="text-accent text-xs font-medium">Home</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-compass text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Explore</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <div class="bg-accent rounded-full p-2">
+                    <i class="fa-solid fa-plus text-white text-sm"></i>
+                </div>
+                <span class="text-text-secondary text-xs">Upload</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-list text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Playlists</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-user text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Profile</span>
+            </div>
+        </div>
+    </nav>
+
+</div>
+
+
+</body></html>

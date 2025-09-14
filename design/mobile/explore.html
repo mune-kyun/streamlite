@@ -1,0 +1,281 @@
+<html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        ::-webkit-scrollbar { display: none;}
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    <script>tailwind.config = {
+  "theme": {
+    "extend": {
+      "colors": {
+        "dark-bg": "#0f0f23",
+        "dark-surface": "#1a1a2e",
+        "dark-card": "#16213e",
+        "accent": "#e94560",
+        "text-primary": "#f5f7fa",
+        "text-secondary": "#a0a3bd"
+      },
+      "fontFamily": {
+        "sans": [
+          "Inter",
+          "sans-serif"
+        ]
+      }
+    }
+  }
+};</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap"><style>
+  .highlighted-section {
+    outline: 2px solid #3F20FB;
+    background-color: rgba(63, 32, 251, 0.1);
+  }
+
+  .edit-button {
+    position: absolute;
+    z-index: 1000;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  </style></head>
+<body class="bg-dark-bg text-text-primary">
+
+<div id="mobile-container" class="max-w-sm mx-auto bg-dark-bg min-h-screen">
+
+    <header id="header" class="sticky top-0 z-50 bg-dark-surface border-b border-gray-700">
+        <div class="flex items-center justify-between p-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-compass text-accent text-xl"></i>
+                <span class="text-lg font-semibold">Explore</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-search text-text-secondary text-lg cursor-pointer"></i>
+                <i class="fa-solid fa-bell text-text-secondary text-lg cursor-pointer"></i>
+            </div>
+        </div>
+    </header>
+
+    <main id="explore-content" class="pb-20">
+        
+        <section id="search-section" class="p-4">
+            <div class="relative">
+                <input type="text" placeholder="Search videos, channels..." class="w-full bg-dark-card border border-gray-600 rounded-full px-4 py-3 pl-12 text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent">
+                <i class="fa-solid fa-search text-text-secondary absolute left-4 top-1/2 transform -translate-y-1/2"></i>
+            </div>
+        </section>
+
+        <section id="trending-categories" class="px-4 mb-6">
+            <div class="flex space-x-3 overflow-x-auto pb-2">
+                <div class="flex-shrink-0 bg-accent text-white px-4 py-2 rounded-full text-sm font-medium">
+                    All
+                </div>
+                <div class="flex-shrink-0 bg-dark-card text-text-secondary px-4 py-2 rounded-full text-sm border border-gray-600">
+                    Gaming
+                </div>
+                <div class="flex-shrink-0 bg-dark-card text-text-secondary px-4 py-2 rounded-full text-sm border border-gray-600">
+                    Music
+                </div>
+                <div class="flex-shrink-0 bg-dark-card text-text-secondary px-4 py-2 rounded-full text-sm border border-gray-600">
+                    Tech
+                </div>
+                <div class="flex-shrink-0 bg-dark-card text-text-secondary px-4 py-2 rounded-full text-sm border border-gray-600">
+                    Cooking
+                </div>
+            </div>
+        </section>
+
+        <section id="featured-videos" class="space-y-4">
+            
+            <div id="video-card-1" class="bg-dark-card rounded-lg overflow-hidden mx-4">
+                <div class="relative">
+                    <img class="w-full h-48 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/59b6b24a9a-12fcf13200476f83cf97.png" alt="gaming setup with RGB lighting, modern gaming room">
+                    <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                        15:42
+                    </div>
+                </div>
+                <div class="p-4">
+                    <div class="flex space-x-3">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-2.jpg" class="w-10 h-10 rounded-full" alt="Channel Avatar">
+                        <div class="flex-1">
+                            <h3 class="text-text-primary font-medium text-sm leading-tight mb-1">Ultimate Gaming Setup Tour 2024 - RGB Paradise</h3>
+                            <p class="text-text-secondary text-xs">TechGamer Pro</p>
+                            <p class="text-text-secondary text-xs">1.2M views • 3 days ago</p>
+                        </div>
+                        <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-sm cursor-pointer"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div id="video-card-2" class="bg-dark-card rounded-lg overflow-hidden mx-4">
+                <div class="relative">
+                    <img class="w-full h-48 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/0912554b0b-ce0dedfb82e4ee376903.png" alt="cooking pasta in modern kitchen, chef hands preparing food">
+                    <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                        8:23
+                    </div>
+                </div>
+                <div class="p-4">
+                    <div class="flex space-x-3">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-5.jpg" class="w-10 h-10 rounded-full" alt="Channel Avatar">
+                        <div class="flex-1">
+                            <h3 class="text-text-primary font-medium text-sm leading-tight mb-1">Perfect Pasta in 10 Minutes - Chef's Secret Recipe</h3>
+                            <p class="text-text-secondary text-xs">Cooking With Sarah</p>
+                            <p class="text-text-secondary text-xs">856K views • 1 day ago</p>
+                        </div>
+                        <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-sm cursor-pointer"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div id="video-card-3" class="bg-dark-card rounded-lg overflow-hidden mx-4">
+                <div class="relative">
+                    <img class="w-full h-48 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/30af91d36b-37531c504d4acfa6a633.png" alt="acoustic guitar close-up, musician playing in studio">
+                    <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                        4:15
+                    </div>
+                </div>
+                <div class="p-4">
+                    <div class="flex space-x-3">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-3.jpg" class="w-10 h-10 rounded-full" alt="Channel Avatar">
+                        <div class="flex-1">
+                            <h3 class="text-text-primary font-medium text-sm leading-tight mb-1">Relaxing Guitar Melodies for Study &amp; Sleep</h3>
+                            <p class="text-text-secondary text-xs">Acoustic Vibes</p>
+                            <p class="text-text-secondary text-xs">2.1M views • 5 days ago</p>
+                        </div>
+                        <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-sm cursor-pointer"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div id="video-card-4" class="bg-dark-card rounded-lg overflow-hidden mx-4">
+                <div class="relative">
+                    <img class="w-full h-48 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/2ed0c432d7-a3060f57ccd8a3b667ee.png" alt="smartphone review, latest iPhone in hands, tech review setup">
+                    <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                        12:34
+                    </div>
+                </div>
+                <div class="p-4">
+                    <div class="flex space-x-3">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-8.jpg" class="w-10 h-10 rounded-full" alt="Channel Avatar">
+                        <div class="flex-1">
+                            <h3 class="text-text-primary font-medium text-sm leading-tight mb-1">iPhone 15 Pro Max Review - Is It Worth The Upgrade?</h3>
+                            <p class="text-text-secondary text-xs">Tech Reviews Daily</p>
+                            <p class="text-text-secondary text-xs">3.4M views • 1 week ago</p>
+                        </div>
+                        <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-sm cursor-pointer"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div id="video-card-5" class="bg-dark-card rounded-lg overflow-hidden mx-4">
+                <div class="relative">
+                    <img class="w-full h-48 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/c8eeef6369-b2887d3a53593c002a26.png" alt="workout routine, fitness trainer in gym, exercise equipment">
+                    <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                        20:15
+                    </div>
+                </div>
+                <div class="p-4">
+                    <div class="flex space-x-3">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-6.jpg" class="w-10 h-10 rounded-full" alt="Channel Avatar">
+                        <div class="flex-1">
+                            <h3 class="text-text-primary font-medium text-sm leading-tight mb-1">Full Body Workout - No Equipment Needed</h3>
+                            <p class="text-text-secondary text-xs">FitLife Coach</p>
+                            <p class="text-text-secondary text-xs">945K views • 2 days ago</p>
+                        </div>
+                        <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-sm cursor-pointer"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div id="video-card-6" class="bg-dark-card rounded-lg overflow-hidden mx-4">
+                <div class="relative">
+                    <img class="w-full h-48 object-cover" src="https://storage.googleapis.com/uxpilot-auth.appspot.com/c2627f18d5-68ce6658967926d085bf.png" alt="travel vlog, beautiful mountain landscape, adventure travel">
+                    <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                        18:47
+                    </div>
+                </div>
+                <div class="p-4">
+                    <div class="flex space-x-3">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-7.jpg" class="w-10 h-10 rounded-full" alt="Channel Avatar">
+                        <div class="flex-1">
+                            <h3 class="text-text-primary font-medium text-sm leading-tight mb-1">Epic Mountain Adventure - Hiking the Alps</h3>
+                            <p class="text-text-secondary text-xs">Adventure Seekers</p>
+                            <p class="text-text-secondary text-xs">1.8M views • 4 days ago</p>
+                        </div>
+                        <i class="fa-solid fa-ellipsis-vertical text-text-secondary text-sm cursor-pointer"></i>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <nav id="bottom-nav" class="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm bg-dark-surface border-t border-gray-700">
+        <div class="flex items-center justify-around py-3">
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-house text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Home</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-compass text-accent text-lg"></i>
+                <span class="text-accent text-xs font-medium">Explore</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <div class="bg-dark-card rounded-full p-2 border border-gray-600">
+                    <i class="fa-solid fa-plus text-text-secondary text-sm"></i>
+                </div>
+                <span class="text-text-secondary text-xs">Upload</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-list text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Playlists</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-user text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Profile</span>
+            </div>
+        </div>
+    </nav>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryButtons = document.querySelectorAll('#trending-categories > div > div');
+    
+    categoryButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            categoryButtons.forEach(btn => {
+                btn.classList.remove('bg-accent', 'text-white');
+                btn.classList.add('bg-dark-card', 'text-text-secondary', 'border', 'border-gray-600');
+            });
+            
+            this.classList.remove('bg-dark-card', 'text-text-secondary', 'border', 'border-gray-600');
+            this.classList.add('bg-accent', 'text-white');
+        });
+    });
+
+    const searchInput = document.querySelector('#search-section input');
+    searchInput.addEventListener('focus', function() {
+        this.parentElement.classList.add('ring-2', 'ring-accent');
+    });
+    
+    searchInput.addEventListener('blur', function() {
+        this.parentElement.classList.remove('ring-2', 'ring-accent');
+    });
+});
+</script>
+
+
+</body></html>

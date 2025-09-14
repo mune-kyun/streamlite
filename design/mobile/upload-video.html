@@ -1,0 +1,290 @@
+<html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        ::-webkit-scrollbar { display: none;}
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    <script>tailwind.config = {
+  "theme": {
+    "extend": {
+      "colors": {
+        "dark-bg": "#0f0f23",
+        "dark-surface": "#1a1a2e",
+        "dark-card": "#16213e",
+        "accent": "#e94560",
+        "text-primary": "#f5f7fa",
+        "text-secondary": "#a0a3bd"
+      },
+      "fontFamily": {
+        "sans": [
+          "Inter",
+          "sans-serif"
+        ]
+      }
+    }
+  }
+};</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap"><style>
+  .highlighted-section {
+    outline: 2px solid #3F20FB;
+    background-color: rgba(63, 32, 251, 0.1);
+  }
+
+  .edit-button {
+    position: absolute;
+    z-index: 1000;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  </style></head>
+<body class="bg-dark-bg text-text-primary">
+
+<div id="mobile-container" class="max-w-sm mx-auto bg-dark-bg min-h-screen">
+
+    <header id="header" class="sticky top-0 z-50 bg-dark-surface border-b border-gray-700">
+        <div class="flex items-center justify-between p-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-arrow-left text-text-primary text-lg cursor-pointer"></i>
+                <span class="text-lg font-semibold">Upload Video</span>
+            </div>
+            <button id="publish-btn" class="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium">
+                Publish
+            </button>
+        </div>
+    </header>
+
+    <main id="upload-content" class="pb-20 p-4">
+        
+        <section id="video-upload-section" class="mb-6">
+            <div id="video-upload-area" class="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center bg-dark-card">
+                <div id="upload-placeholder" class="space-y-4">
+                    <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto">
+                        <i class="fa-solid fa-cloud-arrow-up text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-text-primary mb-2">Select video to upload</h3>
+                        <p class="text-text-secondary text-sm mb-4">Drag and drop or click to browse</p>
+                        <button class="bg-accent text-white px-6 py-2 rounded-lg text-sm font-medium">
+                            Choose File
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="video-preview" class="hidden">
+                    <div class="relative bg-black rounded-lg overflow-hidden">
+                        <video class="w-full h-48 object-cover" controls="">
+                            <source src="" type="video/mp4">
+                        </video>
+                        <button class="absolute top-2 right-2 bg-dark-bg bg-opacity-75 text-white rounded-full w-8 h-8 flex items-center justify-center">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    </div>
+                    <div class="mt-3 text-sm text-text-secondary">
+                        <div class="flex justify-between">
+                            <span>video_file.mp4</span>
+                            <span>125 MB</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                            <div class="bg-accent h-2 rounded-full w-3/4"></div>
+                        </div>
+                        <div class="text-center mt-1">Uploading... 75%</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="video-details-section" class="space-y-6">
+            
+            <div id="title-section">
+                <label class="block text-text-primary font-medium mb-2">Title</label>
+                <input type="text" placeholder="Enter video title..." class="w-full bg-dark-card border border-gray-600 rounded-lg px-4 py-3 text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent">
+                <div class="text-right text-xs text-text-secondary mt-1">0/100</div>
+            </div>
+
+            <div id="description-section">
+                <label class="block text-text-primary font-medium mb-2">Description</label>
+                <textarea rows="4" placeholder="Tell viewers about your video..." class="w-full bg-dark-card border border-gray-600 rounded-lg px-4 py-3 text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent resize-none"></textarea>
+                <div class="text-right text-xs text-text-secondary mt-1">0/500</div>
+            </div>
+
+            <div id="thumbnail-section">
+                <label class="block text-text-primary font-medium mb-3">Thumbnail</label>
+                <div class="space-y-3">
+                    <div class="flex space-x-3 overflow-x-auto">
+                        <div class="flex-shrink-0 relative">
+                            <div class="w-24 h-16 bg-dark-card border-2 border-accent rounded-lg flex items-center justify-center">
+                                <i class="fa-solid fa-plus text-accent"></i>
+                            </div>
+                            <span class="text-xs text-text-secondary block text-center mt-1">Custom</span>
+                        </div>
+                        <div class="flex-shrink-0 relative">
+                            <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/aa649e2cf6-60b00d5ef8ba6380bf85.png" class="w-24 h-16 object-cover rounded-lg border-2 border-gray-600" alt="Auto-generated thumbnail 1">
+                            <span class="text-xs text-text-secondary block text-center mt-1">Auto 1</span>
+                        </div>
+                        <div class="flex-shrink-0 relative">
+                            <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/d64078fdcf-21e62875585a0c9d37cb.png" class="w-24 h-16 object-cover rounded-lg border-2 border-gray-600" alt="Auto-generated thumbnail 2">
+                            <span class="text-xs text-text-secondary block text-center mt-1">Auto 2</span>
+                        </div>
+                        <div class="flex-shrink-0 relative">
+                            <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/62513645b1-257af6b09e393bece365.png" class="w-24 h-16 object-cover rounded-lg border-2 border-gray-600" alt="Auto-generated thumbnail 3">
+                            <span class="text-xs text-text-secondary block text-center mt-1">Auto 3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="visibility-section">
+                <label class="block text-text-primary font-medium mb-3">Visibility</label>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-dark-card rounded-lg border border-gray-600">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-globe text-text-secondary"></i>
+                            <div>
+                                <div class="text-text-primary font-medium">Public</div>
+                                <div class="text-text-secondary text-xs">Anyone can watch</div>
+                            </div>
+                        </div>
+                        <input type="radio" name="visibility" value="public" class="accent-accent" checked="">
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-dark-card rounded-lg border border-gray-600">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-link text-text-secondary"></i>
+                            <div>
+                                <div class="text-text-primary font-medium">Unlisted</div>
+                                <div class="text-text-secondary text-xs">Only with link</div>
+                            </div>
+                        </div>
+                        <input type="radio" name="visibility" value="unlisted" class="accent-accent">
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-dark-card rounded-lg border border-gray-600">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-lock text-text-secondary"></i>
+                            <div>
+                                <div class="text-text-primary font-medium">Private</div>
+                                <div class="text-text-secondary text-xs">Only you can watch</div>
+                            </div>
+                        </div>
+                        <input type="radio" name="visibility" value="private" class="accent-accent">
+                    </div>
+                </div>
+            </div>
+
+            <div id="category-section">
+                <label class="block text-text-primary font-medium mb-2">Category</label>
+                <select class="w-full bg-dark-card border border-gray-600 rounded-lg px-4 py-3 text-text-primary focus:outline-none focus:border-accent">
+                    <option value="">Select category</option>
+                    <option value="gaming">Gaming</option>
+                    <option value="music">Music</option>
+                    <option value="education">Education</option>
+                    <option value="entertainment">Entertainment</option>
+                    <option value="tech">Technology</option>
+                    <option value="cooking">Cooking</option>
+                    <option value="travel">Travel</option>
+                    <option value="fitness">Fitness</option>
+                </select>
+            </div>
+
+            <div id="tags-section">
+                <label class="block text-text-primary font-medium mb-2">Tags</label>
+                <input type="text" placeholder="Add tags separated by commas..." class="w-full bg-dark-card border border-gray-600 rounded-lg px-4 py-3 text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent">
+                <div class="text-xs text-text-secondary mt-1">Help people find your video</div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <nav id="bottom-nav" class="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm bg-dark-surface border-t border-gray-700">
+        <div class="flex items-center justify-around py-3">
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-house text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Home</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-compass text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Explore</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <div class="bg-accent rounded-full p-2">
+                    <i class="fa-solid fa-plus text-white text-sm"></i>
+                </div>
+                <span class="text-accent text-xs font-medium">Upload</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-list text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Playlists</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-user text-text-secondary text-lg"></i>
+                <span class="text-text-secondary text-xs">Profile</span>
+            </div>
+        </div>
+    </nav>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('video-upload-area');
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    const videoPreview = document.getElementById('video-preview');
+    const chooseFileBtn = uploadArea.querySelector('button');
+    
+    uploadArea.addEventListener('click', function() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'video/*';
+        input.onchange = function(e) {
+            if (e.target.files.length > 0) {
+                uploadPlaceholder.classList.add('hidden');
+                videoPreview.classList.remove('hidden');
+            }
+        };
+        input.click();
+    });
+    
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('border-accent');
+    });
+    
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('border-accent');
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('border-accent');
+        if (e.dataTransfer.files.length > 0) {
+            uploadPlaceholder.classList.add('hidden');
+            videoPreview.classList.remove('hidden');
+        }
+    });
+    
+    const thumbnails = document.querySelectorAll('#thumbnail-section img, #thumbnail-section .w-24');
+    thumbnails.forEach(thumb => {
+        thumb.addEventListener('click', function() {
+            thumbnails.forEach(t => t.classList.remove('border-accent'));
+            thumbnails.forEach(t => t.classList.add('border-gray-600'));
+            this.classList.remove('border-gray-600');
+            this.classList.add('border-accent');
+        });
+    });
+});
+</script>
+
+
+</body></html>

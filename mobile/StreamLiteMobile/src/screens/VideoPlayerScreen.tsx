@@ -1,0 +1,898 @@
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+  StatusBar,
+  Alert,
+  ActivityIndicator,
+  Platform,
+  FlatList,
+  Image,
+  TextInput,
+  KeyboardAvoidingView,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
+import { Video as VideoType } from '../types/video';
+import { useAuth } from '../context/AuthContext';
+import CommentsList from '../components/CommentsList';
+import AddToPlaylistModal from '../components/AddToPlaylistModal';
+import Button from '../components/Button';
+import { getApiEndpoint } from '../config/environment';
+import { videoService } from '../services/videoService';
+import { darkTheme } from '../styles/theme';
+
+type RootStackParamList = {
+  VideoPlayer: {
+    video: VideoType;
+  };
+};
+
+type VideoPlayerScreenRouteProp = RouteProp<RootStackParamList, 'VideoPlayer'>;
+type VideoPlayerScreenNavigationProp = StackNavigationProp<RootStackParamList, 'VideoPlayer'>;
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+export const VideoPlayerScreen: React.FC = () => {
+  const navigation = useNavigation<VideoPlayerScreenNavigationProp>();
+  const route = useRoute<VideoPlayerScreenRouteProp>();
+  const { video } = route.params;
+  const insets = useSafeAreaInsets();
+
+  const videoRef = useRef<Video>(null);
+  const flatListRef = useRef<FlatList>(null);
+  const [status, setStatus] = useState<AVPlaybackStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showControls, setShowControls] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [watchProgress, setWatchProgress] = useState(0);
+  const [showComments, setShowComments] = useState(false);
+  const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
+  const [videoData, setVideoData] = useState<VideoType>(video);
+  const [comments, setComments] = useState<any[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [postingComment, setPostingComment] = useState(false);
+
+  // Auto-hide controls after 3 seconds
+  useEffect(() => {
+    if (showControls) {
+      const timer = setTimeout(() => {
+        setShowControls(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showControls]);
+
+  // Track watch progress (for UI only - no backend saving)
+  useEffect(() => {
+    if (status && status.isLoaded && status.durationMillis) {
+      const progress = (status.positionMillis || 0) / status.durationMillis;
+      setWatchProgress(progress);
+    }
+  }, [status]);
+
+  // Load comment count, video data, and comments
+  useEffect(() => {
+    const loadVideoData = async () => {
+      try {
+        // Load comment count
+        const commentResponse = await videoService.getCommentCount(video.id);
+        if (commentResponse.success && commentResponse.data) {
+          setCommentCount(commentResponse.data.comment_count);
+        }
+
+        // Load updated video data
+        const videoResponse = await videoService.getVideo(video.id);
+        if (videoResponse.success && videoResponse.data) {
+          setVideoData(videoResponse.data);
+        }
+
+        // Load comments
+        setLoadingComments(true);
+        const commentsResponse = await videoService.getComments(video.id, { page: 1, limit: 20 });
+        if (commentsResponse.success && commentsResponse.data) {
+          setComments(commentsResponse.data.comments || []);
+        }
+      } catch (error) {
+        console.error('Error loading video data:', error);
+      } finally {
+        setLoadingComments(false);
+      }
+    };
+
+    loadVideoData();
+  }, [video.id]);
+
+  const handlePlayPause = async () => {
+    if (videoRef.current) {
+      if (status?.isLoaded) {
+        if (status.isPlaying) {
+          await videoRef.current.pauseAsync();
+        } else {
+          await videoRef.current.playAsync();
+        }
+      }
+    }
+  };
+
+  const handleSeek = async (position: number) => {
+    if (videoRef.current && status?.isLoaded && status.durationMillis) {
+      const seekPosition = position * status.durationMillis;
+      await videoRef.current.setPositionAsync(seekPosition);
+    }
+  };
+
+  const handleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+    // Note: Full implementation would require orientation changes
+    // For now, we'll just toggle the UI state
+  };
+
+  const handleVideoTap = () => {
+    setShowControls(!showControls);
+  };
+
+  const handleBack = async () => {
+    navigation.goBack();
+  };
+
+  const scrollToComments = () => {
+    if (flatListRef.current) {
+      // Scroll to the comments section (after the header)
+      flatListRef.current.scrollToOffset({ offset: 400, animated: true });
+    }
+  };
+
+  const handlePostComment = async () => {
+    if (!newComment.trim()) {
+      Alert.alert('Error', 'Please enter a comment');
+      return;
+    }
+
+    setPostingComment(true);
+    try {
+      const commentData = {
+        content: newComment.trim(),
+      };
+
+      const result = await videoService.createComment(video.id, commentData);
+
+      if (result.success) {
+        setNewComment('');
+        // Refresh comments to show the new comment
+        const commentsResponse = await videoService.getComments(video.id, { page: 1, limit: 20 });
+        if (commentsResponse.success && commentsResponse.data) {
+          setComments(commentsResponse.data.comments || []);
+          setCommentCount(commentsResponse.data.total || 0);
+        }
+        Alert.alert('Success', 'Comment posted successfully!');
+      } else {
+        Alert.alert('Error', result.error?.message || 'Failed to post comment');
+      }
+    } catch (error) {
+      console.error('Error posting comment:', error);
+      Alert.alert('Error', 'Failed to post comment');
+    } finally {
+      setPostingComment(false);
+    }
+  };
+
+  const formatTime = (milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const videoUri = `${getApiEndpoint('video')}/api/v1/videos/${video.id}/stream`;
+
+  // Helper functions for date formatting
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)} days ago`;
+    return date.toLocaleDateString();
+  };
+
+  const formatViews = (views: number) => {
+    if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M views`;
+    if (views >= 1000) return `${(views / 1000).toFixed(1)}K views`;
+    return `${views} views`;
+  };
+
+  // Render header component for FlatList
+  const renderHeader = () => (
+    <View>
+      {/* Video Info Section */}
+      <View style={styles.videoInfoSection}>
+        <Text style={styles.videoTitle}>{videoData.title || 'Untitled Video'}</Text>
+        
+        <View style={styles.videoMeta}>
+          <View style={styles.viewsAndTime}>
+            <Text style={styles.metaText}>{formatViews(videoData.view_count || 0)}</Text>
+            <Text style={styles.metaText}> • </Text>
+            <Text style={styles.metaText}>{formatDate(videoData.created_at || new Date().toISOString())}</Text>
+          </View>
+          
+          <View style={styles.actionIcons}>
+            <TouchableOpacity style={styles.actionIcon}>
+              <Ionicons name="thumbs-up-outline" size={18} color={darkTheme.colors.textSecondary} />
+              <Text style={styles.actionText}>{(videoData as any).like_count || 0}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.actionIcon}>
+              <Ionicons name="thumbs-down-outline" size={18} color={darkTheme.colors.textSecondary} />
+              <Text style={styles.actionText}>{(videoData as any).dislike_count || 0}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.actionIcon} onPress={scrollToComments}>
+              <Ionicons name="chatbubble-outline" size={18} color={darkTheme.colors.textSecondary} />
+              <Text style={styles.actionText}>{commentCount}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.actionIcon} onPress={() => setShowAddToPlaylist(true)}>
+              <Ionicons name="bookmark-outline" size={18} color={darkTheme.colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Channel Info */}
+        <View style={styles.channelInfo}>
+          <View style={styles.channelLeft}>
+            <View style={styles.channelAvatar}>
+              <Ionicons name="person-outline" size={20} color={darkTheme.colors.textSecondary} />
+            </View>
+            <View style={styles.channelDetails}>
+              <Text style={styles.channelName}>{(videoData as any).uploader || 'Unknown Creator'}</Text>
+              <Text style={styles.subscriberCount}>Creator</Text>
+            </View>
+          </View>
+          <Button
+            title="Subscribe"
+            onPress={() => Alert.alert('Subscribe', 'Subscribe feature coming soon!')}
+            variant="primary"
+            size="small"
+            style={styles.subscribeButton}
+          />
+        </View>
+      </View>
+
+      {/* Description Section */}
+      <View style={styles.descriptionSection}>
+        <Text style={styles.descriptionText} numberOfLines={3}>
+          {videoData.description || 'No description available.'}
+        </Text>
+        <TouchableOpacity>
+          <Text style={styles.showMoreText}>Show more</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Comments Header */}
+      <View style={styles.commentsHeader}>
+        <Text style={styles.commentsTitle}>Comments</Text>
+        {commentCount > 0 && (
+          <Text style={styles.commentsCount}>{commentCount.toLocaleString()}</Text>
+        )}
+      </View>
+    </View>
+  );
+
+  // Render comment item
+  const renderComment = ({ item }: { item: any }) => (
+    <View style={styles.commentItem}>
+      <View style={styles.commentAvatar}>
+        <Ionicons name="person-outline" size={16} color={darkTheme.colors.textSecondary} />
+      </View>
+      <View style={styles.commentContent}>
+        <Text style={styles.commentAuthor}>{item.author || 'Anonymous'}</Text>
+        <Text style={styles.commentText}>{item.content}</Text>
+        <Text style={styles.commentTime}>{formatDate(item.created_at)}</Text>
+      </View>
+    </View>
+  );
+
+  return (
+    <KeyboardAvoidingView 
+      style={[styles.container, isFullscreen && styles.fullscreenContainer]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <StatusBar barStyle="light-content" backgroundColor={darkTheme.colors.background} />
+      
+      {/* Header */}
+      {!isFullscreen && (
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+          <View style={styles.headerContent}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <Ionicons name="arrow-back" size={18} color={darkTheme.colors.textPrimary} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle} numberOfLines={1}>
+              {video.title || 'Video Player'}
+            </Text>
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.headerButton}>
+                <Ionicons name="share-outline" size={18} color={darkTheme.colors.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.headerButton}>
+                <Ionicons name="ellipsis-vertical" size={18} color={darkTheme.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+      
+      {/* Video Player */}
+      <TouchableOpacity 
+        style={styles.videoContainer} 
+        activeOpacity={1}
+        onPress={handleVideoTap}
+      >
+        <Video
+          ref={videoRef}
+          style={styles.video}
+          source={{ uri: videoUri }}
+          useNativeControls={false}
+          resizeMode={ResizeMode.CONTAIN}
+          isLooping={false}
+          onPlaybackStatusUpdate={setStatus}
+          onLoad={() => setIsLoading(false)}
+          onError={(error) => {
+            console.error('Video error:', error);
+            setIsLoading(false);
+            Alert.alert('Error', 'Failed to load video');
+          }}
+        />
+
+        {/* Loading Indicator */}
+        {isLoading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={darkTheme.colors.white} />
+            <Text style={styles.loadingText}>Loading video...</Text>
+          </View>
+        )}
+
+        {/* Controls Overlay */}
+        {showControls && !isLoading && (
+          <View style={styles.controlsOverlay}>
+            {/* Center Controls */}
+            <View style={styles.centerControls}>
+              <TouchableOpacity style={styles.skipBackButton} onPress={() => handleSeek(Math.max(0, watchProgress - 0.1))}>
+                <Ionicons name="play-skip-back" size={24} color={darkTheme.colors.white} />
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.playPauseButton} onPress={handlePlayPause}>
+                <Ionicons 
+                  name={status?.isLoaded && status.isPlaying ? "pause" : "play"} 
+                  size={32} 
+                  color={darkTheme.colors.white} 
+                />
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.skipForwardButton} onPress={() => handleSeek(Math.min(1, watchProgress + 0.1))}>
+                <Ionicons name="play-skip-forward" size={24} color={darkTheme.colors.white} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Bottom Controls */}
+            <View style={styles.bottomControls}>
+              <View style={styles.timeAndProgress}>
+                <Text style={styles.timeText}>
+                  {status?.isLoaded ? formatTime(status.positionMillis || 0) : '0:00'}
+                </Text>
+                
+                <View style={styles.progressContainer}>
+                  <TouchableOpacity 
+                    style={styles.progressBar}
+                    onPress={(event) => {
+                      const { locationX } = event.nativeEvent;
+                      const progressBarWidth = screenWidth - 120; // Account for time and controls
+                      const newProgress = locationX / progressBarWidth;
+                      handleSeek(Math.max(0, Math.min(1, newProgress)));
+                    }}
+                  >
+                    <View style={styles.progressTrack} />
+                    <View 
+                      style={[styles.progressFill, { width: `${watchProgress * 100}%` }]} 
+                    />
+                  </TouchableOpacity>
+                </View>
+                
+                <Text style={styles.timeText}>
+                  {status?.isLoaded ? formatTime(status.durationMillis || 0) : '0:00'}
+                </Text>
+                
+                <View style={styles.volumeAndFullscreen}>
+                  <TouchableOpacity style={styles.controlButton}>
+                    <Ionicons name="volume-high" size={18} color={darkTheme.colors.white} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.controlButton} onPress={handleFullscreen}>
+                    <Ionicons name="expand" size={18} color={darkTheme.colors.white} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {/* Content Section with FlatList */}
+      {!isFullscreen && (
+        <FlatList
+          data={comments}
+          renderItem={renderComment}
+          keyExtractor={(item, index) => `comment-${item.id || index}`}
+          ListHeaderComponent={renderHeader}
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyComments}>
+              <Text style={styles.emptyCommentsText}>
+                {loadingComments ? 'Loading comments...' : 'No comments yet'}
+              </Text>
+            </View>
+          }
+        />
+      )}
+
+      {/* Comment Input Section */}
+      {!isFullscreen && (
+        <View style={[styles.commentInputContainer, { paddingBottom: insets.bottom + 16 }]}>
+          <View style={styles.commentInputRow}>
+            <View style={styles.commentUserAvatar}>
+              <Ionicons name="person-outline" size={16} color={darkTheme.colors.textSecondary} />
+            </View>
+            <TextInput
+              style={styles.commentTextInput}
+              value={newComment}
+              onChangeText={setNewComment}
+              placeholder="Add a comment..."
+              placeholderTextColor={darkTheme.colors.textSecondary}
+              multiline
+              maxLength={1000}
+              editable={!postingComment}
+            />
+            <TouchableOpacity
+              style={[
+                styles.postCommentButton,
+                (!newComment.trim() || postingComment) && styles.postCommentButtonDisabled
+              ]}
+              onPress={handlePostComment}
+              disabled={!newComment.trim() || postingComment}
+            >
+              {postingComment ? (
+                <ActivityIndicator size="small" color={darkTheme.colors.white} />
+              ) : (
+                <Ionicons name="send" size={16} color={darkTheme.colors.white} />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Add to Playlist Modal */}
+      <AddToPlaylistModal
+        visible={showAddToPlaylist}
+        onClose={() => setShowAddToPlaylist(false)}
+        videoId={video.id}
+        videoTitle={video.title || 'Untitled Video'}
+      />
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: darkTheme.colors.background,
+  },
+  fullscreenContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+  },
+  // Header Styles
+  header: {
+    backgroundColor: darkTheme.colors.background,
+    paddingHorizontal: darkTheme.spacing.md,
+    paddingBottom: darkTheme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: darkTheme.colors.border,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: darkTheme.fontSize.md,
+    fontWeight: darkTheme.fontWeight.semibold,
+    color: darkTheme.colors.textPrimary,
+    marginHorizontal: darkTheme.spacing.md,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
+    padding: darkTheme.spacing.sm,
+    marginLeft: darkTheme.spacing.xs,
+  },
+  backButton: {
+    padding: darkTheme.spacing.sm,
+  },
+  // Video Player Styles
+  videoContainer: {
+    height: 220,
+    backgroundColor: '#000000',
+    position: 'relative',
+  },
+  video: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  loadingText: {
+    color: darkTheme.colors.white,
+    marginTop: darkTheme.spacing.md,
+    fontSize: darkTheme.fontSize.md,
+  },
+  // Controls Overlay Styles
+  controlsOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'space-between',
+  },
+  centerControls: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: darkTheme.spacing.xl,
+  },
+  skipBackButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  skipForwardButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playPauseButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    borderRadius: 35,
+    width: 70,
+    height: 70,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bottomControls: {
+    paddingHorizontal: darkTheme.spacing.md,
+    paddingBottom: darkTheme.spacing.md,
+  },
+  timeAndProgress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: darkTheme.spacing.sm,
+  },
+  timeText: {
+    color: darkTheme.colors.white,
+    fontSize: darkTheme.fontSize.sm,
+    minWidth: 40,
+    textAlign: 'center',
+  },
+  progressContainer: {
+    flex: 1,
+    marginHorizontal: darkTheme.spacing.sm,
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 2,
+    position: 'relative',
+  },
+  progressTrack: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 2,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: darkTheme.colors.accent,
+    borderRadius: 2,
+  },
+  volumeAndFullscreen: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: darkTheme.spacing.sm,
+  },
+  controlButton: {
+    padding: darkTheme.spacing.xs,
+  },
+  // Content Styles
+  content: {
+    flex: 1,
+    backgroundColor: darkTheme.colors.background,
+  },
+  videoInfoSection: {
+    padding: darkTheme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: darkTheme.colors.border,
+  },
+  videoTitle: {
+    fontSize: darkTheme.fontSize.lg,
+    fontWeight: darkTheme.fontWeight.semibold,
+    color: darkTheme.colors.textPrimary,
+    marginBottom: darkTheme.spacing.sm,
+    lineHeight: 24,
+  },
+  videoMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: darkTheme.spacing.md,
+  },
+  viewsAndTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  metaText: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+  },
+  actionIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: darkTheme.spacing.lg,
+  },
+  actionIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: darkTheme.spacing.xs,
+  },
+  actionText: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+  },
+  // Channel Info Styles
+  channelInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  channelLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  channelAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: darkTheme.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: darkTheme.spacing.sm,
+  },
+  channelDetails: {
+    flex: 1,
+  },
+  channelName: {
+    fontSize: darkTheme.fontSize.md,
+    fontWeight: darkTheme.fontWeight.medium,
+    color: darkTheme.colors.textPrimary,
+  },
+  subscriberCount: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+    marginTop: 2,
+  },
+  subscribeButton: {
+    paddingHorizontal: darkTheme.spacing.lg,
+  },
+  // Description Styles
+  descriptionSection: {
+    padding: darkTheme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: darkTheme.colors.border,
+  },
+  descriptionText: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: darkTheme.spacing.sm,
+  },
+  showMoreText: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+    fontWeight: darkTheme.fontWeight.medium,
+  },
+  // Comments Styles
+  commentsSection: {
+    padding: darkTheme.spacing.lg,
+  },
+  commentsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: darkTheme.spacing.lg,
+    marginTop: darkTheme.spacing.lg,
+    paddingHorizontal: darkTheme.spacing.lg,
+    gap: darkTheme.spacing.sm,
+  },
+  commentsTitle: {
+    fontSize: darkTheme.fontSize.md,
+    fontWeight: darkTheme.fontWeight.semibold,
+    color: darkTheme.colors.textPrimary,
+  },
+  commentsCount: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+  },
+  addComment: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: darkTheme.spacing.lg,
+    gap: darkTheme.spacing.sm,
+  },
+  userAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: darkTheme.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  commentInput: {
+    flex: 1,
+    paddingVertical: darkTheme.spacing.sm,
+    paddingHorizontal: darkTheme.spacing.md,
+    backgroundColor: darkTheme.colors.surface,
+    borderRadius: darkTheme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: darkTheme.colors.border,
+  },
+  commentPlaceholder: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+  },
+  // New styles for FlatList implementation
+  contentContainer: {
+    paddingBottom: 100,
+  },
+  commentItem: {
+    flexDirection: 'row',
+    padding: darkTheme.spacing.lg,
+    marginHorizontal: darkTheme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: darkTheme.colors.border,
+  },
+  commentAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: darkTheme.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: darkTheme.spacing.sm,
+  },
+  commentContent: {
+    flex: 1,
+  },
+  commentAuthor: {
+    fontSize: darkTheme.fontSize.sm,
+    fontWeight: darkTheme.fontWeight.medium,
+    color: darkTheme.colors.textPrimary,
+    marginBottom: darkTheme.spacing.xs,
+  },
+  commentText: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+    lineHeight: 18,
+    marginBottom: darkTheme.spacing.xs,
+  },
+  commentTime: {
+    fontSize: darkTheme.fontSize.xs,
+    color: darkTheme.colors.textSecondary,
+  },
+  emptyComments: {
+    padding: darkTheme.spacing.xl,
+    alignItems: 'center',
+  },
+  emptyCommentsText: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+  },
+  // Comment Input Styles
+  commentInputContainer: {
+    backgroundColor: darkTheme.colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: darkTheme.colors.border,
+    paddingHorizontal: darkTheme.spacing.md,
+    paddingTop: darkTheme.spacing.md,
+  },
+  commentInputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: darkTheme.spacing.sm,
+  },
+  commentUserAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: darkTheme.colors.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  commentTextInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: darkTheme.colors.border,
+    borderRadius: 20,
+    paddingHorizontal: darkTheme.spacing.md,
+    paddingVertical: darkTheme.spacing.sm,
+    fontSize: darkTheme.fontSize.sm,
+    maxHeight: 100,
+    backgroundColor: darkTheme.colors.card,
+    color: darkTheme.colors.textPrimary,
+  },
+  postCommentButton: {
+    backgroundColor: darkTheme.colors.accent,
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  postCommentButtonDisabled: {
+    backgroundColor: darkTheme.colors.gray600,
+  },
+});
