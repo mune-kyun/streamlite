@@ -543,11 +543,16 @@ func StreamVideo(c *fiber.Ctx) error {
 	}
 
 	// Check if file exists
-	if _, err := os.Stat(video.FilePath); os.IsNotExist(err) {
+	info, err := os.Stat(video.FilePath)
+	if os.IsNotExist(err) {
 		return c.Status(404).JSON(fiber.Map{
 			"error": "Video file not found",
 		})
 	}
+
+	// Log file size in MB
+	sizeMB := float64(info.Size()) / (1024 * 1024)
+	fmt.Printf("Video size: %.2f MB\n", sizeMB)
 
 	// Set appropriate headers for video streaming
 	c.Set("Content-Type", "video/"+video.Format)
