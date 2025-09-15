@@ -30,7 +30,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userVideos, setUserVideos] = useState<Video[]>([]);
+  const [userStats, setUserStats] = useState({
+    videoCount: 0,
+    totalViews: 0,
+    subscribers: 0, // This would come from a future subscriber system
+  });
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'videos' | 'playlists'>('videos');
   const [editForm, setEditForm] = useState({
@@ -39,10 +45,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     avatar: '',
   });
 
-  // Load user profile on component mount
+  // Load user profile and stats on component mount
   useEffect(() => {
     if (user?.id) {
       loadUserProfile();
+      loadUserStats();
     }
   }, [user]);
 
@@ -70,6 +77,68 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loadUserStats = async () => {
+    if (!user?.id) return;
+    
+    setIsLoadingStats(true);
+    try {
+      console.log('Loading user statistics...');
+      
+      // Fetch all videos to calculate user stats
+      // Note: In a real app, this would be optimized with a dedicated user stats endpoint
+      const videosResponse = await videoService.getVideos({ limit: 1000 }); // Get a large number to capture all videos
+      
+      if (videosResponse.success && videosResponse.data) {
+        const allVideos = videosResponse.data.videos;
+        
+        // For now, we'll use all videos as user videos since we don't have user-specific filtering
+        // In a real app, videos would have a user_id field to filter by
+        setUserVideos(allVideos);
+        
+        // Calculate stats from all videos (this is a placeholder approach)
+        const totalViews = allVideos.reduce((sum, video) => sum + (video.view_count || 0), 0);
+        
+        setUserStats({
+          videoCount: allVideos.length,
+          totalViews: totalViews,
+          subscribers: 0, // This would come from a future subscriber system
+        });
+        
+        console.log('User stats loaded:', {
+          videoCount: allVideos.length,
+          totalViews: totalViews,
+        });
+      } else {
+        console.log('Failed to load videos for stats:', videosResponse.error);
+        // Set default stats if loading fails
+        setUserStats({
+          videoCount: 0,
+          totalViews: 0,
+          subscribers: 0,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error loading user stats:', error);
+      // Set default stats if loading fails
+      setUserStats({
+        videoCount: 0,
+        totalViews: 0,
+        subscribers: 0,
+      });
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
   };
 
   const handleEditProfile = () => {
@@ -201,15 +270,27 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>2.1M</Text>
+                {isLoadingStats ? (
+                  <ActivityIndicator size="small" color={darkTheme.colors.accent} />
+                ) : (
+                  <Text style={styles.statNumber}>{formatNumber(userStats.subscribers)}</Text>
+                )}
                 <Text style={styles.statLabel}>Subscribers</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>156</Text>
+                {isLoadingStats ? (
+                  <ActivityIndicator size="small" color={darkTheme.colors.accent} />
+                ) : (
+                  <Text style={styles.statNumber}>{formatNumber(userStats.videoCount)}</Text>
+                )}
                 <Text style={styles.statLabel}>Videos</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>45.2M</Text>
+                {isLoadingStats ? (
+                  <ActivityIndicator size="small" color={darkTheme.colors.accent} />
+                ) : (
+                  <Text style={styles.statNumber}>{formatNumber(userStats.totalViews)}</Text>
+                )}
                 <Text style={styles.statLabel}>Views</Text>
               </View>
             </View>
@@ -285,27 +366,62 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         <View style={styles.contentSection}>
           {activeTab === 'videos' ? (
             <View style={styles.videosGrid}>
-              {/* Mock video grid - replace with actual user videos */}
-              {Array.from({ length: 6 }).map((_, index) => (
-                <View key={index} style={styles.videoGridItem}>
-                  <View style={styles.videoThumbnail}>
-                    <Ionicons 
-                      name="videocam-outline" 
-                      size={24} 
-                      color={darkTheme.colors.textSecondary} 
-                    />
-                    <View style={styles.videoDuration}>
-                      <Text style={styles.videoDurationText}>12:34</Text>
-                    </View>
-                  </View>
-                  <View style={styles.videoInfo}>
-                    <Text style={styles.videoTitle} numberOfLines={2}>
-                      Ultimate Gaming Setup Tour 2024
-                    </Text>
-                    <Text style={styles.videoViews}>2.1M views</Text>
-                  </View>
+              {isLoadingStats ? (
+                <View style={styles.videosLoadingContainer}>
+                  <ActivityIndicator size="large" color={darkTheme.colors.accent} />
+                  <Text style={styles.videosLoadingText}>Loading videos...</Text>
                 </View>
-              ))}
+              ) : userVideos.length > 0 ? (
+                userVideos.slice(0, 6).map((video, index) => (
+                  <TouchableOpacity
+                    key={`video-${video.id}-${index}`}
+                    style={styles.videoGridItem}
+                    onPress={() => navigation.navigate('VideoPlayer', { video })}
+                  >
+                    <View style={styles.videoThumbnail}>
+                      {video.thumbnail_path ? (
+                        <Image 
+                          source={{ uri: videoService.getThumbnailUrl(video.thumbnail_path) }} 
+                          style={styles.videoThumbnailImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <Ionicons 
+                          name="videocam-outline" 
+                          size={24} 
+                          color={darkTheme.colors.textSecondary} 
+                        />
+                      )}
+                      <View style={styles.videoDuration}>
+                        <Text style={styles.videoDurationText}>
+                          {videoService.formatDuration(video.duration || 0)}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.videoInfo}>
+                      <Text style={styles.videoTitle} numberOfLines={2}>
+                        {video.title}
+                      </Text>
+                      <Text style={styles.videoViews}>
+                        {formatNumber(video.view_count || 0)} views
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <View style={styles.noVideosContainer}>
+                  <Ionicons 
+                    name="videocam-outline" 
+                    size={48} 
+                    color={darkTheme.colors.textSecondary} 
+                    style={styles.noVideosIcon}
+                  />
+                  <Text style={styles.noVideosTitle}>No videos yet</Text>
+                  <Text style={styles.noVideosText}>
+                    Upload your first video to get started
+                  </Text>
+                </View>
+              )}
             </View>
           ) : (
             <View style={styles.playlistsContainer}>
@@ -332,17 +448,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           )}
         </View>
 
-        {/* Load More Button */}
-        {activeTab === 'videos' && (
-          <View style={styles.loadMoreSection}>
-            <Button
-              title="Load More Videos"
-              onPress={() => Alert.alert('Load More', 'Load more feature coming soon!')}
-              variant="outline"
-              style={styles.loadMoreButton}
-            />
-          </View>
-        )}
         
         {/* Bottom padding for tab bar */}
         <View style={{ height: 100 }} />
@@ -613,6 +718,41 @@ const styles = StyleSheet.create({
     fontSize: darkTheme.fontSize.xs,
     color: darkTheme.colors.textSecondary,
   },
+  videoThumbnailImage: {
+    width: '100%',
+    height: '100%',
+  },
+  videosLoadingContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: darkTheme.spacing.xxxl,
+  },
+  videosLoadingText: {
+    marginTop: darkTheme.spacing.md,
+    fontSize: darkTheme.fontSize.md,
+    color: darkTheme.colors.textSecondary,
+  },
+  noVideosContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: darkTheme.spacing.xxxl,
+  },
+  noVideosIcon: {
+    marginBottom: darkTheme.spacing.lg,
+    opacity: 0.5,
+  },
+  noVideosTitle: {
+    fontSize: darkTheme.fontSize.lg,
+    fontWeight: darkTheme.fontWeight.medium,
+    color: darkTheme.colors.textPrimary,
+    marginBottom: darkTheme.spacing.sm,
+    textAlign: 'center',
+  },
+  noVideosText: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+    textAlign: 'center',
+  },
   playlistsContainer: {
     gap: darkTheme.spacing.md,
   },
@@ -636,14 +776,6 @@ const styles = StyleSheet.create({
   playlistSubtitle: {
     fontSize: darkTheme.fontSize.sm,
     color: darkTheme.colors.textSecondary,
-  },
-  loadMoreSection: {
-    paddingHorizontal: darkTheme.spacing.lg,
-    paddingTop: darkTheme.spacing.xl,
-    alignItems: 'center',
-  },
-  loadMoreButton: {
-    paddingHorizontal: darkTheme.spacing.xl,
   },
   scrollContent: {
     flexGrow: 1,

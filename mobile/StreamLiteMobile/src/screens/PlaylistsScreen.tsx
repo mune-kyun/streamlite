@@ -240,6 +240,7 @@ export const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ navigation }) 
               value={playlistName}
               onChangeText={setPlaylistName}
               placeholder="Enter playlist name"
+              placeholderTextColor={darkTheme.colors.accent}
               maxLength={100}
             />
           </View>
@@ -251,6 +252,7 @@ export const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ navigation }) 
               value={playlistDescription}
               onChangeText={setPlaylistDescription}
               placeholder="Enter playlist description (optional)"
+              placeholderTextColor={darkTheme.colors.accent}
               multiline
               numberOfLines={3}
               maxLength={500}
@@ -303,16 +305,6 @@ export const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ navigation }) 
           </View>
           
           <View style={styles.headerActions}>
-            <TouchableOpacity 
-              style={styles.headerButton}
-              onPress={openCreateModal}
-            >
-              <Ionicons 
-                name="add" 
-                size={18} 
-                color={darkTheme.colors.textSecondary} 
-              />
-            </TouchableOpacity>
           </View>
         </View>
       </View>

@@ -381,6 +381,62 @@ When resuming work, focus on:
 - ✅ **Validation**: Added video file existence check to prevent processing non-existent files
 - ✅ **Fallback Logic**: Enhanced timestamp fallback logic with detailed error logging
 
+## 🎯 COMPLETED TASKS (LATEST UPDATE - ENDPOINT DOCUMENTATION)
+
+### Backend Endpoint Documentation ✅ - COMPLETED
+- ✅ **Comprehensive Endpoint Analysis**: Analyzed all service files (authService, userService, videoService, playlistService, streamingService)
+- ✅ **Screen-by-Screen Mapping**: Identified endpoint usage across all React Native screens and components
+- ✅ **endpoint_used.md Creation**: Created comprehensive documentation file with 45 active endpoints across 4 backend services
+- ✅ **Service Organization**: Organized endpoints by Auth Service (8001), User Service (8002), Video Service (8003), Streaming Service (8004)
+- ✅ **Request/Response Documentation**: Included detailed request data structures and response formats for each endpoint
+- ✅ **Future Endpoint Tracking**: Documented 67 total available endpoints including unused ones for future features
+
+### Endpoint Documentation Features ✅
+- ✅ **Screen-Based Organization**: Grouped endpoints by LoginScreen, HomeScreen, VideoPlayerScreen, PlaylistsScreen, etc.
+- ✅ **Service Configuration**: Documented service URLs, ports, and purposes
+- ✅ **HTTP Method Documentation**: GET, POST, PUT, DELETE operations with full endpoint paths
+- ✅ **Data Structure Details**: Request parameters, query strings, FormData, and response objects
+- ✅ **Usage Statistics**: 45 active endpoints, breakdown by service, screens by endpoint complexity
+- ✅ **Maintenance Instructions**: Clear guidelines for updating documentation when new integrations are added
+
+## 🎯 CRITICAL DEVELOPMENT WORKFLOW - ENDPOINT DOCUMENTATION MAINTENANCE
+
+### **MANDATORY PROCESS**: Frontend-Backend Integration Documentation
+
+**RULE**: Every time frontend is connected to backend (new endpoint integration), the `endpoint_used.md` file MUST be updated.
+
+#### When to Update endpoint_used.md:
+1. **New Screen Creation**: When creating new screens that call backend APIs
+2. **New Endpoint Integration**: When existing screens start using new backend endpoints
+3. **Service Modifications**: When backend services add/modify/remove endpoints
+4. **API Changes**: When request/response structures change
+5. **New Component Integration**: When components like modals start using backend APIs
+
+#### Update Process:
+1. **Identify New Endpoints**: Document the new endpoint(s) being integrated
+2. **Screen Classification**: Determine which screen/component uses the endpoint
+3. **Service Mapping**: Identify which backend service (Auth/User/Video/Streaming) provides the endpoint
+4. **Documentation Format**: Follow the established table format with Method, Purpose, Request Data, Response Data
+5. **File Update**: Add new endpoints to the appropriate screen section in endpoint_used.md
+6. **Summary Update**: Update the summary statistics (total endpoints, endpoints by service, etc.)
+
+#### Documentation Template for New Endpoints:
+```markdown
+### [ScreenName].tsx
+**Services**: [Service Name] (Port [XXXX])
+
+| Endpoint | Method | Purpose | Request Data | Response Data |
+|----------|--------|---------|--------------|---------------|
+| `/api/v1/[endpoint]` | [METHOD] | [Purpose description] | `{ [request structure] }` | `[Response structure]` |
+```
+
+#### Memory Bank Integration:
+- **activeContext.md**: Document the integration work and endpoint additions
+- **progress.md**: Update feature completion status including endpoint documentation
+- **systemPatterns.md**: Update if new API patterns or service communication patterns are established
+
+This workflow ensures that the endpoint documentation remains current and serves as an accurate reference for the entire development team.
+
 ## 🎯 NEXT PRIORITIES
 
 1. **Testing and Validation**: 
@@ -392,3 +448,4 @@ When resuming work, focus on:
 3. **Performance Optimization**: Video streaming optimization, caching, background uploads
 4. **Authentication Integration**: Connect video service with JWT tokens from Auth Service
 5. **Additional UI Polish**: Fine-tune remaining visual elements and animations
+6. **Endpoint Documentation Maintenance**: Update endpoint_used.md whenever new FE-BE integrations are completed
