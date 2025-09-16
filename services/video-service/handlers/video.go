@@ -552,7 +552,7 @@ func StreamVideo(c *fiber.Ctx) error {
 
 	// Log file size in MB
 	sizeMB := float64(info.Size()) / (1024 * 1024)
-	fmt.Printf("Video size: %.2f MB\n", sizeMB)
+	fmt.Printf("(Stream Video) Video size: %.2f MB\n", sizeMB)
 
 	// Set appropriate headers for video streaming
 	c.Set("Content-Type", "video/"+video.Format)
