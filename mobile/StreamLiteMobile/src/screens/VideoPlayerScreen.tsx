@@ -20,6 +20,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Video as VideoType } from '../types/video';
+import { PlaylistWithVideos, PlaylistVideoWithMeta } from '../types/playlist';
 import { useAuth } from '../context/AuthContext';
 import CommentsList from '../components/CommentsList';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
@@ -31,6 +32,10 @@ import { darkTheme } from '../styles/theme';
 type RootStackParamList = {
   VideoPlayer: {
     video: VideoType;
+    playlist?: {
+      data: PlaylistWithVideos;
+      currentIndex: number;
+    };
   };
 };
 
@@ -42,7 +47,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 export const VideoPlayerScreen: React.FC = () => {
   const navigation = useNavigation<VideoPlayerScreenNavigationProp>();
   const route = useRoute<VideoPlayerScreenRouteProp>();
-  const { video } = route.params;
+  const { video, playlist } = route.params;
   const insets = useSafeAreaInsets();
 
   const videoRef = useRef<Video>(null);
@@ -66,6 +71,11 @@ export const VideoPlayerScreen: React.FC = () => {
   const [dislikeCount, setDislikeCount] = useState(0);
   const [userLikeStatus, setUserLikeStatus] = useState<'like' | 'dislike' | null>(null);
 
+  // Playlist state
+  const [currentPlaylist, setCurrentPlaylist] = useState<PlaylistWithVideos | null>(playlist?.data || null);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState<number>(playlist?.currentIndex || 0);
+  const [autoPlayEnabled, setAutoPlayEnabled] = useState(true);
+
   // Auto-hide controls after 3 seconds
   useEffect(() => {
     if (showControls) {
@@ -76,13 +86,129 @@ export const VideoPlayerScreen: React.FC = () => {
     }
   }, [showControls]);
 
-  // Track watch progress (for UI only - no backend saving)
+  // Track watch progress and handle auto-play
   useEffect(() => {
     if (status && status.isLoaded && status.durationMillis) {
       const progress = (status.positionMillis || 0) / status.durationMillis;
       setWatchProgress(progress);
+
+      // Check if video has ended and auto-play is enabled
+      if (status.didJustFinish && autoPlayEnabled && currentPlaylist) {
+        handleAutoPlayNext();
+      }
     }
-  }, [status]);
+  }, [status, autoPlayEnabled, currentPlaylist, currentVideoIndex]);
+
+  // Auto-play next video in playlist
+  const handleAutoPlayNext = () => {
+    if (!currentPlaylist || currentVideoIndex >= currentPlaylist.videos.length - 1) {
+      // End of playlist
+      Alert.alert('Playlist Complete', 'You have reached the end of the playlist.');
+      return;
+    }
+
+    const nextVideoIndex = currentVideoIndex + 1;
+    const nextPlaylistVideo = currentPlaylist.videos[nextVideoIndex];
+    
+    if (nextPlaylistVideo) {
+      const nextVideo: VideoType = {
+        id: nextPlaylistVideo.video_id,
+        title: nextPlaylistVideo.video_title || 'Unknown Title',
+        description: nextPlaylistVideo.video_description || '',
+        duration: nextPlaylistVideo.video_duration || 0,
+        thumbnail_path: nextPlaylistVideo.video_thumbnail || '',
+        thumbnails: {
+          small: nextPlaylistVideo.video_thumbnail || '',
+          medium: nextPlaylistVideo.video_thumbnail || '',
+          large: nextPlaylistVideo.video_thumbnail || '',
+        },
+        file_size: 0, // Will be loaded from API
+        format: 'mp4', // Default format
+        view_count: nextPlaylistVideo.video_view_count || 0,
+        category_id: nextPlaylistVideo.video_category_id || 0,
+        uploaded_by: 0, // Will be loaded from API
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Navigate to next video with updated playlist context and auto-play
+      navigation.replace('VideoPlayer', {
+        video: nextVideo,
+        playlist: {
+          data: currentPlaylist,
+          currentIndex: nextVideoIndex,
+        },
+      });
+    }
+  };
+
+  // Navigate to previous video in playlist
+  const handlePlayPrevious = () => {
+    if (!currentPlaylist || currentVideoIndex <= 0) {
+      Alert.alert('Info', 'This is the first video in the playlist.');
+      return;
+    }
+
+    const prevVideoIndex = currentVideoIndex - 1;
+    const prevPlaylistVideo = currentPlaylist.videos[prevVideoIndex];
+    
+    if (prevPlaylistVideo) {
+      const prevVideo: VideoType = {
+        id: prevPlaylistVideo.video_id,
+        title: prevPlaylistVideo.video_title || 'Unknown Title',
+        description: prevPlaylistVideo.video_description || '',
+        duration: prevPlaylistVideo.video_duration || 0,
+        thumbnail_path: prevPlaylistVideo.video_thumbnail || '',
+        thumbnails: {
+          small: prevPlaylistVideo.video_thumbnail || '',
+          medium: prevPlaylistVideo.video_thumbnail || '',
+          large: prevPlaylistVideo.video_thumbnail || '',
+        },
+        file_size: 0, // Will be loaded from API
+        format: 'mp4', // Default format
+        view_count: prevPlaylistVideo.video_view_count || 0,
+        category_id: prevPlaylistVideo.video_category_id || 0,
+        uploaded_by: 0, // Will be loaded from API
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Navigate to previous video with updated playlist context
+      navigation.replace('VideoPlayer', {
+        video: prevVideo,
+        playlist: {
+          data: currentPlaylist,
+          currentIndex: prevVideoIndex,
+        },
+      });
+    }
+  };
+
+  // Navigate to next video manually
+  const handlePlayNext = () => {
+    if (!currentPlaylist || currentVideoIndex >= currentPlaylist.videos.length - 1) {
+      Alert.alert('Info', 'This is the last video in the playlist.');
+      return;
+    }
+
+    handleAutoPlayNext();
+  };
+
+  // Get next video for preview
+  const getNextVideo = (): PlaylistVideoWithMeta | null => {
+    if (!currentPlaylist || currentVideoIndex >= currentPlaylist.videos.length - 1) {
+      return null;
+    }
+    return currentPlaylist.videos[currentVideoIndex + 1];
+  };
+
+  // Auto-play video when it loads (especially for playlist auto-play)
+  useEffect(() => {
+    if (videoRef.current && !isLoading && status?.isLoaded && currentPlaylist) {
+      // Auto-play when coming from playlist (auto-play scenario)
+      videoRef.current.playAsync().catch(console.error);
+    }
+  }, [status?.isLoaded, isLoading, currentPlaylist]);
 
   // Load comment count, video data, and comments
   useEffect(() => {
@@ -390,6 +516,115 @@ export const VideoPlayerScreen: React.FC = () => {
           <Text style={styles.showMoreText}>Show more</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Playlist Controls and Next Video Preview */}
+      {currentPlaylist && (
+        <View style={styles.playlistSection}>
+          {/* Playlist Info */}
+          <View style={styles.playlistInfo}>
+            <View style={styles.playlistHeader}>
+              <Ionicons name="list" size={16} color={darkTheme.colors.accent} />
+              <Text style={styles.playlistTitle}>{currentPlaylist.name}</Text>
+              <Text style={styles.playlistProgress}>
+                {currentVideoIndex + 1} of {currentPlaylist.videos.length}
+              </Text>
+            </View>
+            
+            {/* Playlist Navigation Controls */}
+            <View style={styles.playlistControls}>
+              <TouchableOpacity 
+                style={[styles.playlistControlButton, currentVideoIndex <= 0 && styles.playlistControlButtonDisabled]}
+                onPress={handlePlayPrevious}
+                disabled={currentVideoIndex <= 0}
+              >
+                <Ionicons 
+                  name="play-skip-back" 
+                  size={16} 
+                  color={currentVideoIndex <= 0 ? darkTheme.colors.textSecondary : darkTheme.colors.textPrimary} 
+                />
+                <Text style={[
+                  styles.playlistControlText,
+                  currentVideoIndex <= 0 && styles.playlistControlTextDisabled
+                ]}>
+                  Previous
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.playlistControlButton, currentVideoIndex >= currentPlaylist.videos.length - 1 && styles.playlistControlButtonDisabled]}
+                onPress={handlePlayNext}
+                disabled={currentVideoIndex >= currentPlaylist.videos.length - 1}
+              >
+                <Ionicons 
+                  name="play-skip-forward" 
+                  size={16} 
+                  color={currentVideoIndex >= currentPlaylist.videos.length - 1 ? darkTheme.colors.textSecondary : darkTheme.colors.textPrimary} 
+                />
+                <Text style={[
+                  styles.playlistControlText,
+                  currentVideoIndex >= currentPlaylist.videos.length - 1 && styles.playlistControlTextDisabled
+                ]}>
+                  Next
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.autoPlayToggle}
+                onPress={() => setAutoPlayEnabled(!autoPlayEnabled)}
+              >
+                <Ionicons 
+                  name={autoPlayEnabled ? "repeat" : "repeat-outline"} 
+                  size={16} 
+                  color={autoPlayEnabled ? darkTheme.colors.accent : darkTheme.colors.textSecondary} 
+                />
+                <Text style={[
+                  styles.playlistControlText,
+                  autoPlayEnabled && { color: darkTheme.colors.accent }
+                ]}>
+                  Auto-play
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Next Video Preview */}
+          {getNextVideo() && (
+            <View style={styles.nextVideoSection}>
+              <Text style={styles.nextVideoLabel}>Up next</Text>
+              <TouchableOpacity 
+                style={styles.nextVideoCard}
+                onPress={handlePlayNext}
+              >
+                <View style={styles.nextVideoThumbnail}>
+                  {getNextVideo()?.video_thumbnail ? (
+                    <Image
+                      source={{ uri: `http://localhost:8083${getNextVideo()?.video_thumbnail}` }}
+                      style={styles.nextVideoThumbnailImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.nextVideoPlaceholder}>
+                      <Ionicons name="videocam" size={20} color={darkTheme.colors.textSecondary} />
+                    </View>
+                  )}
+                  <View style={styles.nextVideoPlayOverlay}>
+                    <Ionicons name="play" size={12} color="#ffffff" />
+                  </View>
+                </View>
+                
+                <View style={styles.nextVideoInfo}>
+                  <Text style={styles.nextVideoTitle} numberOfLines={2}>
+                    {getNextVideo()?.video_title || 'Unknown Title'}
+                  </Text>
+                  <Text style={styles.nextVideoMeta}>
+                    {getNextVideo()?.video_duration ? formatTime((getNextVideo()?.video_duration || 0) * 1000) : '0:00'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      )}
 
       {/* Comments Header */}
       <View style={styles.commentsHeader}>
@@ -1099,5 +1334,122 @@ const styles = StyleSheet.create({
     width: 2,
     backgroundColor: darkTheme.colors.accent,
     marginRight: darkTheme.spacing.sm,
+  },
+  // Playlist Styles
+  playlistSection: {
+    backgroundColor: darkTheme.colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: darkTheme.colors.border,
+  },
+  playlistInfo: {
+    padding: darkTheme.spacing.md,
+  },
+  playlistHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: darkTheme.spacing.md,
+    gap: darkTheme.spacing.sm,
+  },
+  playlistTitle: {
+    flex: 1,
+    fontSize: darkTheme.fontSize.md,
+    fontWeight: darkTheme.fontWeight.medium,
+    color: darkTheme.colors.textPrimary,
+  },
+  playlistProgress: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+  },
+  playlistControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  playlistControlButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: darkTheme.spacing.sm,
+    paddingHorizontal: darkTheme.spacing.md,
+    borderRadius: darkTheme.borderRadius.md,
+    backgroundColor: darkTheme.colors.card,
+    gap: darkTheme.spacing.xs,
+  },
+  playlistControlButtonDisabled: {
+    opacity: 0.5,
+  },
+  playlistControlText: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textPrimary,
+  },
+  playlistControlTextDisabled: {
+    color: darkTheme.colors.textSecondary,
+  },
+  autoPlayToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: darkTheme.spacing.sm,
+    paddingHorizontal: darkTheme.spacing.md,
+    borderRadius: darkTheme.borderRadius.md,
+    backgroundColor: darkTheme.colors.card,
+    gap: darkTheme.spacing.xs,
+  },
+  // Next Video Styles
+  nextVideoSection: {
+    padding: darkTheme.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: darkTheme.colors.border,
+  },
+  nextVideoLabel: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+    marginBottom: darkTheme.spacing.sm,
+    fontWeight: darkTheme.fontWeight.medium,
+  },
+  nextVideoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: darkTheme.spacing.md,
+  },
+  nextVideoThumbnail: {
+    width: 80,
+    height: 48,
+    borderRadius: darkTheme.borderRadius.md,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  nextVideoThumbnailImage: {
+    width: '100%',
+    height: '100%',
+  },
+  nextVideoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: darkTheme.colors.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nextVideoPlayOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nextVideoInfo: {
+    flex: 1,
+  },
+  nextVideoTitle: {
+    fontSize: darkTheme.fontSize.sm,
+    fontWeight: darkTheme.fontWeight.medium,
+    color: darkTheme.colors.textPrimary,
+    marginBottom: darkTheme.spacing.xs,
+    lineHeight: 18,
+  },
+  nextVideoMeta: {
+    fontSize: darkTheme.fontSize.xs,
+    color: darkTheme.colors.textSecondary,
   },
 });

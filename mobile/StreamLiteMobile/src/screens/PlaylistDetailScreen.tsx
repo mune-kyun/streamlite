@@ -105,18 +105,35 @@ export const PlaylistDetailScreen: React.FC<any> = ({ navigation, route }) => {
     }
   };
 
-  const handlePlayVideo = (video: PlaylistVideoWithMeta) => {
-    // Navigate to video player with the video data
-    navigation.navigate('VideoPlayer', {
-      video: {
-        id: video.video_id,
-        title: video.video_title || 'Unknown Title',
-        description: video.video_description || '',
-        duration: video.video_duration || 0,
-        thumbnail_path: video.video_thumbnail || '',
-        view_count: video.video_view_count || 0,
-        category_id: video.video_category_id || 0,
+  const handlePlayVideo = (video: PlaylistVideoWithMeta, videoIndex?: number) => {
+    // Create video object with all required properties
+    const videoObject = {
+      id: video.video_id,
+      title: video.video_title || 'Unknown Title',
+      description: video.video_description || '',
+      duration: video.video_duration || 0,
+      thumbnail_path: video.video_thumbnail || '',
+      thumbnails: {
+        small: video.video_thumbnail || '',
+        medium: video.video_thumbnail || '',
+        large: video.video_thumbnail || '',
       },
+      file_size: 0, // Will be loaded from API
+      format: 'mp4', // Default format
+      view_count: video.video_view_count || 0,
+      category_id: video.video_category_id || 0,
+      uploaded_by: 0, // Will be loaded from API
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Navigate to video player with playlist context
+    navigation.navigate('VideoPlayer', {
+      video: videoObject,
+      playlist: playlist ? {
+        data: playlist,
+        currentIndex: videoIndex !== undefined ? videoIndex : playlist.videos.findIndex(v => v.video_id === video.video_id),
+      } : undefined,
     });
   };
 
@@ -126,8 +143,8 @@ export const PlaylistDetailScreen: React.FC<any> = ({ navigation, route }) => {
       return;
     }
 
-    // Play the first video in the playlist
-    handlePlayVideo(playlist.videos[0]);
+    // Play the first video in the playlist with playlist context
+    handlePlayVideo(playlist.videos[0], 0);
   };
 
   const formatDuration = (seconds: number): string => {
