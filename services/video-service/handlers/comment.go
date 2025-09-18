@@ -5,6 +5,7 @@ import (
 	"math"
 	"strconv"
 	"video-service/database"
+	"video-service/middleware"
 	"video-service/models"
 	"video-service/utils"
 
@@ -55,9 +56,13 @@ func CreateComment(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Get user ID from JWT token
-	// For now, using a placeholder user ID
-	userID := uint(1) // This should come from JWT middleware
+	// Get user ID from JWT token
+	userID, exists := middleware.GetUserID(c)
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Authentication required",
+		})
+	}
 
 	// If this is a reply, check if parent comment exists
 	if req.ParentCommentID != nil {
@@ -303,8 +308,13 @@ func UpdateComment(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Get user ID from JWT token
-	userID := uint(1) // This should come from JWT middleware
+	// Get user ID from JWT token
+	userID, exists := middleware.GetUserID(c)
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Authentication required",
+		})
+	}
 
 	// Find the comment
 	var comment models.Comment
@@ -382,8 +392,13 @@ func DeleteComment(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Get user ID from JWT token
-	userID := uint(1) // This should come from JWT middleware
+	// Get user ID from JWT token
+	userID, exists := middleware.GetUserID(c)
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Authentication required",
+		})
+	}
 
 	// Find the comment
 	var comment models.Comment

@@ -4,7 +4,7 @@ export { ProfileScreen } from './ProfileScreen';
 export { HomeScreen } from './HomeScreen';
 export { SettingsScreen } from './SettingsScreen';
 export { VideoBrowseScreen } from './VideoBrowseScreen';
-export { ExploreScreen } from './ExploreScreen';
+export { SubscriptionScreen } from './SubscriptionScreen';
 export { VideoPlayerScreen } from './VideoPlayerScreen';
 export { VideoUploadScreen } from './VideoUploadScreen';
 export { TestUploadScreen } from './TestUploadScreen';

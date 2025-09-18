@@ -26,7 +26,9 @@ This document lists all backend endpoints being used in the StreamLite React Nat
 
 | Endpoint | Method | Purpose | Request Data | Response Data |
 |----------|--------|---------|--------------|---------------|
-| `/auth/register` | POST | User registration | `{ email, password }` | `{ access_token, refresh_token, user }` |
+| `/auth/register` | POST | User registration with automatic profile creation | `{ email, password }` | `{ access_token, refresh_token, user }` |
+
+**Note**: Registration now automatically creates a user profile in User Service with display name extracted from email (everything before '@' symbol).
 
 ### AuthContext.tsx (Global Authentication)
 **Service**: Auth Service (Port 8001)

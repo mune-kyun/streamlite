@@ -5,9 +5,11 @@ go 1.24.5
 require (
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/gofiber/swagger v1.1.1
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/swaggo/swag v1.16.6
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.30.1
+	modernc.org/sqlite v1.38.2
 )
 
 require (
@@ -48,5 +50,4 @@ require (
 	modernc.org/libc v1.66.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.38.2 // indirect
 )

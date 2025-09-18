@@ -1,7 +1,13 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"log"
+	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"auth-service/database"
@@ -139,6 +145,14 @@ func Register(c *fiber.Ctx) error {
 	}
 	database.DB.Create(&refreshTokenRecord)
 
+	// Automatically create user profile
+	// Note: Profile creation failure doesn't fail the registration
+	go func() {
+		if err := createUserProfile(user.ID, user.Email); err != nil {
+			log.Printf("Failed to create profile for user %d: %v", user.ID, err)
+		}
+	}()
+
 	response := AuthResponse{
 		User:         user.ToResponse(),
 		AccessToken:  accessToken,
@@ -239,6 +253,73 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(response)
+}
+
+// ProfileCreateRequest represents the request body for creating a profile
+type ProfileCreateRequest struct {
+	DisplayName string `json:"display_name"`
+	Avatar      string `json:"avatar"`
+	Bio         string `json:"bio"`
+}
+
+// getUserServiceURL returns the User Service URL from environment or default
+func getUserServiceURL() string {
+	if url := os.Getenv("USER_SERVICE_URL"); url != "" {
+		return url
+	}
+	return "http://localhost:8002"
+}
+
+// extractDisplayName extracts the display name from email (everything before '@')
+func extractDisplayName(email string) string {
+	parts := strings.Split(email, "@")
+	if len(parts) > 0 && parts[0] != "" {
+		return parts[0]
+	}
+	return "User" // fallback display name
+}
+
+// createUserProfile creates a user profile in the User Service
+func createUserProfile(userID uint, email string) error {
+	displayName := extractDisplayName(email)
+	
+	profileData := ProfileCreateRequest{
+		DisplayName: displayName,
+		Avatar:      "",
+		Bio:         "",
+	}
+	
+	jsonData, err := json.Marshal(profileData)
+	if err != nil {
+		return fmt.Errorf("failed to marshal profile data: %v", err)
+	}
+	
+	userServiceURL := getUserServiceURL()
+	url := fmt.Sprintf("%s/api/v1/profiles/%d", userServiceURL, userID)
+	
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+	
+	req.Header.Set("Content-Type", "application/json")
+	
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to make request to user service: %v", err)
+	}
+	defer resp.Body.Close()
+	
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("user service returned status %d", resp.StatusCode)
+	}
+	
+	log.Printf("Profile created successfully for user %d with display name: %s", userID, displayName)
+	return nil
 }
 
 // ValidateToken validates the current user's token

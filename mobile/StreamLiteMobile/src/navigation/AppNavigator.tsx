@@ -12,7 +12,7 @@ import { RegisterScreen } from '../screens/RegisterScreen';
 import { HomeScreen } from '../screens/HomeScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
-import { ExploreScreen } from '../screens/ExploreScreen';
+import { SubscriptionScreen } from '../screens/SubscriptionScreen';
 import { VideoPlayerScreen } from '../screens/VideoPlayerScreen';
 import { VideoUploadScreen } from '../screens/VideoUploadScreen';
 import { TestUploadScreen } from '../screens/TestUploadScreen';
@@ -112,14 +112,14 @@ const MainTabNavigator: React.FC = () => {
       })}
     />
     <Tab.Screen
-      name="Explore"
-      component={ExploreScreen}
+      name="Subscriptions"
+      component={SubscriptionScreen}
       options={{
         headerShown: false,
-        tabBarLabel: 'Explore',
+        tabBarLabel: 'Subscriptions',
         tabBarIcon: ({ color, focused }) => (
           <Ionicons 
-            name="compass-outline" 
+            name="people-outline" 
             size={20} 
             color={focused ? '#e94560' : '#a0a3bd'} 
           />

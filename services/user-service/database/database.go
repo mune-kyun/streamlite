@@ -33,6 +33,7 @@ func InitDatabase() {
 		&models.UserPreference{},
 		&models.Playlist{},
 		&models.PlaylistVideo{},
+		&models.Subscription{},
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)

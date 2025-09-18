@@ -4,6 +4,7 @@ import (
 	"log"
 	"user-service/database"
 	"user-service/handlers"
+	"user-service/middleware"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -59,35 +60,47 @@ func main() {
 	// API routes
 	api := app.Group("/api/v1")
 	
-	// User profile routes
+	// User profile routes - GET is public for service-to-service, PUT is protected
 	profiles := api.Group("/profiles")
-	profiles.Get("/:userId", handlers.GetProfile)
-	profiles.Put("/:userId", handlers.UpdateProfile)
+	profiles.Get("/:userId", handlers.GetProfile) // Public for service-to-service communication
+	profiles.Put("/:userId", middleware.JWTMiddleware(), handlers.UpdateProfile) // Protected for user updates
 	
-	// Watch history routes
-	history := api.Group("/watch-history")
+	// Watch history routes (protected)
+	history := api.Group("/watch-history", middleware.JWTMiddleware())
 	history.Get("/:userId", handlers.GetWatchHistory)
 	history.Post("/", handlers.AddWatchHistory)
 	history.Put("/:historyId", handlers.UpdateWatchHistory)
 	history.Delete("/:historyId", handlers.DeleteWatchHistory)
 	
-	// User preferences routes
-	preferences := api.Group("/preferences")
+	// User preferences routes (protected)
+	preferences := api.Group("/preferences", middleware.JWTMiddleware())
 	preferences.Get("/:userId", handlers.GetPreferences)
 	preferences.Put("/:userId", handlers.UpdatePreferences)
 
-	// Playlist routes
-	playlists := api.Group("/playlists")
+	// Playlist routes (protected)
+	playlists := api.Group("/playlists", middleware.JWTMiddleware())
 	playlists.Get("/:userId", handlers.GetUserPlaylists)           // Get user's playlists
 	playlists.Post("/:userId", handlers.CreatePlaylist)           // Create new playlist
 	playlists.Put("/update/:playlistId", handlers.UpdatePlaylist) // Update playlist
 	playlists.Delete("/:playlistId", handlers.DeletePlaylist)     // Delete playlist
 	
-	// Playlist video management routes
+	// Playlist video management routes (protected)
 	playlists.Get("/:playlistId/videos", handlers.GetPlaylistVideos)        // Get playlist videos
 	playlists.Post("/:playlistId/videos", handlers.AddVideoToPlaylist)      // Add video to playlist
 	playlists.Delete("/:playlistId/videos/:videoId", handlers.RemoveVideoFromPlaylist) // Remove video from playlist
 	playlists.Put("/:playlistId/reorder", handlers.ReorderPlaylistVideos)   // Reorder playlist videos
+
+	// Subscription routes (protected)
+	subscriptions := api.Group("/subscriptions", middleware.JWTMiddleware())
+	subscriptions.Post("/", handlers.CreateSubscription)                                    // Subscribe to user
+	subscriptions.Delete("/:follower_id/:following_id", handlers.DeleteSubscription)       // Unsubscribe from user
+	subscriptions.Get("/user/:user_id", handlers.GetUserSubscriptions)                     // Get user's subscriptions
+	subscriptions.Get("/status/:follower_id/:following_id", handlers.CheckSubscriptionStatus) // Check subscription status
+	subscriptions.Get("/stats/:user_id", handlers.GetSubscriptionStats)                    // Get subscription stats
+	
+	// Subscriber routes (protected)
+	subscribers := api.Group("/subscribers", middleware.JWTMiddleware())
+	subscribers.Get("/user/:user_id", handlers.GetUserSubscribers) // Get user's subscribers
 
 	// Start server
 	log.Println("User Service starting on port 8002...")

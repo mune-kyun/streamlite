@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 	"video-service/database"
+	"video-service/middleware"
 	"video-service/models"
 	"video-service/utils"
 
@@ -106,6 +107,16 @@ func UploadVideo(c *fiber.Ctx) error {
 		})
 	}
 
+	// Get user ID from JWT token
+	userID, exists := middleware.GetUserID(c)
+	if !exists {
+		// Clean up file if user not authenticated
+		os.Remove(filePath)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Authentication required",
+		})
+	}
+
 	// Create video record
 	video := models.Video{
 		Title:       title,
@@ -114,7 +125,7 @@ func UploadVideo(c *fiber.Ctx) error {
 		FileSize:    file.Size,
 		Format:      strings.TrimPrefix(ext, "."),
 		CategoryID:  uint(categoryID),
-		UploadedBy:  1, // TODO: Get from JWT token
+		UploadedBy:  userID,
 	}
 
 	if err := database.DB.Create(&video).Error; err != nil {
@@ -1098,8 +1109,13 @@ func LikeVideo(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Get user ID from JWT token
-	userID := uint(1) // This should come from JWT middleware
+	// Get user ID from JWT token
+	userID, exists := middleware.GetUserID(c)
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Authentication required",
+		})
+	}
 
 	// Check if video exists
 	var video models.Video
@@ -1186,8 +1202,13 @@ func RemoveLike(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Get user ID from JWT token
-	userID := uint(1) // This should come from JWT middleware
+	// Get user ID from JWT token
+	userID, exists := middleware.GetUserID(c)
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Authentication required",
+		})
+	}
 
 	// Check if video exists
 	var video models.Video
@@ -1263,12 +1284,12 @@ func GetVideoLikeStats(c *fiber.Ctx) error {
 	// Get like/dislike counts
 	likeCount, dislikeCount := getLikeCounts(uint(videoID))
 
-	// TODO: Get user ID from JWT token if authenticated
-	userID := uint(1) // This should come from JWT middleware
+	// Get user ID from JWT token if authenticated
+	userID, exists := middleware.GetUserID(c)
 
 	// Get user's like status if authenticated
 	var userLikeStatus *string
-	if userID > 0 {
+	if exists && userID > 0 {
 		var userLike models.VideoLike
 		err = database.DB.Where("video_id = ? AND user_id = ?", videoID, userID).First(&userLike).Error
 		if err == nil {

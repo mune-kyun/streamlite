@@ -21,21 +21,33 @@ import { darkTheme } from '../styles/theme';
 
 interface HomeScreenProps {
   navigation: any;
+  route?: {
+    params?: {
+      searchQuery?: string;
+    };
+  };
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, route }) => {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const [videos, setVideos] = useState<Video[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(route?.params?.searchQuery || '');
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const loadData = async () => {
     try {
       // Load videos and categories in parallel
       const [videosResponse, categoriesResponse] = await Promise.all([
-        videoService.getVideos({ limit: 10 }), // Get more videos for the feed
+        videoService.getVideos({ 
+          limit: 20,
+          search: searchQuery || undefined,
+          category: selectedCategory || undefined
+        }),
         videoService.getCategories()
       ]);
 
@@ -57,7 +69,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [searchQuery, selectedCategory]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -68,21 +80,50 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     navigation.navigate('VideoPlayer', { video });
   };
 
-
   const navigateToProfile = () => {
     navigation.navigate('Profile');
   };
 
   const navigateToNotifications = () => {
-    // TODO: Implement notifications screen
     Alert.alert('Notifications', 'Notifications feature coming soon!');
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      loadData();
+    }
+  };
+
+  const handleCategorySelect = (categoryId: number | null) => {
+    setSelectedCategory(categoryId);
+  };
+
+  const renderCategoryPill = (category: Category | null, isSelected: boolean) => {
+    const isAll = category === null;
+    return (
+      <TouchableOpacity
+        key={isAll ? 'all' : category?.id}
+        style={[
+          styles.categoryPill,
+          isSelected ? styles.categoryPillActive : styles.categoryPillInactive
+        ]}
+        onPress={() => handleCategorySelect(isAll ? null : category?.id || null)}
+      >
+        <Text style={[
+          styles.categoryPillText,
+          isSelected ? styles.categoryPillTextActive : styles.categoryPillTextInactive
+        ]}>
+          {isAll ? 'All' : category?.name}
+        </Text>
+      </TouchableOpacity>
+    );
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={darkTheme.colors.accent} />
-        <Text style={styles.loadingText}>Loading videos...</Text>
+        <Text style={styles.loadingText}>Loading content...</Text>
       </View>
     );
   }
@@ -131,6 +172,46 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         
       </View>
 
+      {/* Search Section */}
+      <View style={styles.searchSection}>
+        <View style={[
+          styles.searchContainer,
+          searchFocused && styles.searchContainerFocused
+        ]}>
+          <Ionicons 
+            name="search" 
+            size={16} 
+            color={darkTheme.colors.textSecondary} 
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search videos, channels..."
+            placeholderTextColor={darkTheme.colors.textSecondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onSubmitEditing={handleSearch}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
+            returnKeyType="search"
+          />
+        </View>
+      </View>
+
+      {/* Category Pills */}
+      <View style={styles.categoriesSection}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          {renderCategoryPill(null, selectedCategory === null)}
+          {categories.map((category) => 
+            renderCategoryPill(category, selectedCategory === category.id)
+          )}
+        </ScrollView>
+      </View>
+
       {/* Main Content */}
       <ScrollView 
         style={styles.content}
@@ -144,22 +225,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentContainer}>
-          <Text style={styles.sectionTitle}>Featured Videos</Text>
-          
           {videos.length > 0 ? (
             <View style={styles.videoFeed}>
               {videos.map((video, index) => (
-                <VideoThumbnail
-                  key={`video-${video.id}-${index}`}
-                  video={video}
-                  onPress={() => navigateToVideo(video)}
-                  showTitle={true}
-                  showDuration={true}
-                  showViewCount={true}
-                  showChannelInfo={true}
-                  isLive={false}
-                  style={styles.videoCard}
-                />
+                <View key={`video-${video.id}-${index}`} style={styles.videoCardContainer}>
+                  <VideoThumbnail
+                    video={video}
+                    onPress={() => navigateToVideo(video)}
+                    showTitle={true}
+                    showDuration={true}
+                    showViewCount={true}
+                    showChannelInfo={true}
+                    isLive={false}
+                    style={styles.videoCard}
+                  />
+                </View>
               ))}
             </View>
           ) : (
@@ -171,10 +251,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 style={styles.emptyStateIcon}
               />
               <Text style={styles.emptyStateText}>
-                No videos available yet.
+                {searchQuery ? 'No videos found' : 'No videos available'}
               </Text>
               <Text style={styles.emptyStateSubtext}>
-                Upload some videos to get started!
+                {searchQuery ? 'Try a different search term' : 'Check back later for new content!'}
               </Text>
             </View>
           )}
@@ -289,5 +369,69 @@ const styles = StyleSheet.create({
     fontSize: darkTheme.fontSize.lg,
     color: darkTheme.colors.textSecondary,
     textAlign: 'center',
+  },
+  searchSection: {
+    paddingHorizontal: darkTheme.spacing.lg,
+    paddingVertical: darkTheme.spacing.lg,
+    backgroundColor: darkTheme.colors.background,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: darkTheme.colors.card,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: darkTheme.colors.border,
+    paddingHorizontal: darkTheme.spacing.lg,
+    paddingVertical: darkTheme.spacing.md,
+  },
+  searchContainerFocused: {
+    borderColor: darkTheme.colors.accent,
+  },
+  searchIcon: {
+    marginRight: darkTheme.spacing.md,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: darkTheme.fontSize.md,
+    color: darkTheme.colors.textPrimary,
+    padding: 0,
+  },
+  categoriesSection: {
+    backgroundColor: darkTheme.colors.background,
+    paddingBottom: darkTheme.spacing.lg,
+  },
+  categoriesContainer: {
+    paddingHorizontal: darkTheme.spacing.lg,
+    gap: darkTheme.spacing.md,
+  },
+  categoryPill: {
+    paddingHorizontal: darkTheme.spacing.lg,
+    paddingVertical: darkTheme.spacing.sm,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  categoryPillActive: {
+    backgroundColor: darkTheme.colors.accent,
+    borderColor: darkTheme.colors.accent,
+  },
+  categoryPillInactive: {
+    backgroundColor: darkTheme.colors.card,
+    borderColor: darkTheme.colors.border,
+  },
+  categoryPillText: {
+    fontSize: darkTheme.fontSize.sm,
+    fontWeight: '500',
+  },
+  categoryPillTextActive: {
+    color: '#ffffff',
+  },
+  categoryPillTextInactive: {
+    color: darkTheme.colors.textSecondary,
+  },
+  videoCardContainer: {
+    backgroundColor: darkTheme.colors.card,
+    borderRadius: darkTheme.borderRadius.lg,
+    overflow: 'hidden',
   },
 });

@@ -32,9 +32,19 @@ func FetchUserDisplayName(userID uint) string {
 		Timeout: 5 * time.Second,
 	}
 
-	// Make request to User Service
+	// Create request to User Service
 	url := fmt.Sprintf("http://localhost:8002/api/v1/profiles/%d", userID)
-	resp, err := client.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		fmt.Printf("Error creating request for user %d: %v\n", userID, err)
+		return fmt.Sprintf("User %d", userID)
+	}
+
+	// For service-to-service communication, we'll use a service token
+	// In production, this should be a proper service-to-service authentication
+	// For now, we'll make the profile endpoint public for service access
+	
+	resp, err := client.Do(req)
 	if err != nil {
 		// Log error and return fallback
 		fmt.Printf("Error fetching user profile for user %d: %v\n", userID, err)

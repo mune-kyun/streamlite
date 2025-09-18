@@ -27,6 +27,7 @@ import AddToPlaylistModal from '../components/AddToPlaylistModal';
 import Button from '../components/Button';
 import { getApiEndpoint } from '../config/environment';
 import { videoService } from '../services/videoService';
+import { subscriptionService } from '../services/subscriptionService';
 import { darkTheme } from '../styles/theme';
 
 type RootStackParamList = {
@@ -49,6 +50,7 @@ export const VideoPlayerScreen: React.FC = () => {
   const route = useRoute<VideoPlayerScreenRouteProp>();
   const { video, playlist } = route.params;
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
 
   const videoRef = useRef<Video>(null);
   const flatListRef = useRef<FlatList>(null);
@@ -70,6 +72,9 @@ export const VideoPlayerScreen: React.FC = () => {
   const [likeCount, setLikeCount] = useState(0);
   const [dislikeCount, setDislikeCount] = useState(0);
   const [userLikeStatus, setUserLikeStatus] = useState<'like' | 'dislike' | null>(null);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriberCount, setSubscriberCount] = useState(0);
+  const [checkingSubscription, setCheckingSubscription] = useState(false);
 
   // Playlist state
   const [currentPlaylist, setCurrentPlaylist] = useState<PlaylistWithVideos | null>(playlist?.data || null);
@@ -232,6 +237,31 @@ export const VideoPlayerScreen: React.FC = () => {
           setLikeCount(likeStatsResponse.data.like_count || 0);
           setDislikeCount(likeStatsResponse.data.dislike_count || 0);
           setUserLikeStatus(likeStatsResponse.data.user_like_status || null);
+        }
+
+        // Load subscription status and stats if we have video uploader info
+        if (videoResponse.success && videoResponse.data && videoResponse.data.uploaded_by && user?.id) {
+          setCheckingSubscription(true);
+          try {
+            // Check subscription status
+            const subscriptionStatusResponse = await subscriptionService.checkSubscriptionStatus(
+              user.id,
+              videoResponse.data.uploaded_by
+            );
+            if (subscriptionStatusResponse.success && subscriptionStatusResponse.data) {
+              setIsSubscribed(subscriptionStatusResponse.data.is_subscribed);
+            }
+
+            // Get subscriber count for the video uploader
+            const statsResponse = await subscriptionService.getSubscriptionStats(videoResponse.data.uploaded_by);
+            if (statsResponse.success && statsResponse.data) {
+              setSubscriberCount(statsResponse.data.subscriber_count);
+            }
+          } catch (error) {
+            console.error('Error loading subscription data:', error);
+          } finally {
+            setCheckingSubscription(false);
+          }
         }
 
         // Load comments
@@ -398,6 +428,53 @@ export const VideoPlayerScreen: React.FC = () => {
     }
   };
 
+  const handleSubscribe = async () => {
+    if (!videoData.uploaded_by) {
+      Alert.alert('Error', 'Unable to subscribe - video uploader information not available');
+      return;
+    }
+
+    if (!user?.id) {
+      Alert.alert('Error', 'Please log in to subscribe to channels');
+      return;
+    }
+
+    try {
+      if (isSubscribed) {
+        // Unsubscribe
+        const result = await subscriptionService.unsubscribe(
+          user.id,
+          videoData.uploaded_by
+        );
+        
+        if (result.success) {
+          setIsSubscribed(false);
+          setSubscriberCount(prev => Math.max(0, prev - 1));
+          Alert.alert('Success', 'Successfully unsubscribed');
+        } else {
+          Alert.alert('Error', result.error || 'Failed to unsubscribe');
+        }
+      } else {
+        // Subscribe
+        const result = await subscriptionService.subscribe(
+          user.id,
+          videoData.uploaded_by
+        );
+        
+        if (result.success) {
+          setIsSubscribed(true);
+          setSubscriberCount(prev => prev + 1);
+          Alert.alert('Success', 'Successfully subscribed!');
+        } else {
+          Alert.alert('Error', result.error || 'Failed to subscribe');
+        }
+      }
+    } catch (error) {
+      console.error('Error handling subscription:', error);
+      Alert.alert('Error', 'Failed to update subscription');
+    }
+  };
+
   const formatTime = (milliseconds: number) => {
     const totalSeconds = Math.floor(milliseconds / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -495,14 +572,18 @@ export const VideoPlayerScreen: React.FC = () => {
             </View>
             <View style={styles.channelDetails}>
               <Text style={styles.channelName}>{(videoData as any).uploader_display_name || `User ${videoData.uploaded_by}` || 'StreamLite Creator'}</Text>
+              {subscriberCount > 0 && (
+                <Text style={styles.subscriberCount}>{subscriberCount.toLocaleString()} subscribers</Text>
+              )}
             </View>
           </View>
           <Button
-            title="Subscribe"
-            onPress={() => Alert.alert('Subscribe', 'Subscribe feature coming soon!')}
-            variant="primary"
+            title={isSubscribed ? "Subscribed" : "Subscribe"}
+            onPress={handleSubscribe}
+            variant={isSubscribed ? "secondary" : "primary"}
             size="small"
             style={styles.subscribeButton}
+            disabled={checkingSubscription}
           />
         </View>
       </View>

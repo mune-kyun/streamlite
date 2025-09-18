@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Video,
   Category,
@@ -35,12 +36,15 @@ const videoApi = axios.create({
 
 // Add request interceptor for authentication
 videoApi.interceptors.request.use(
-  (config) => {
-    // TODO: Add JWT token when authentication middleware is implemented
-    // const token = await AsyncStorage.getItem('token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+  async (config) => {
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error('Error getting auth token:', error);
+    }
     return config;
   },
   (error) => {

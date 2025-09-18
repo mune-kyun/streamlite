@@ -4,6 +4,7 @@ import (
 	"log"
 	"video-service/database"
 	"video-service/handlers"
+	"video-service/middleware"
 
 	_ "video-service/docs"
 
@@ -53,34 +54,34 @@ func main() {
 	
 	// Video routes
 	videos := api.Group("/videos")
-	videos.Post("/upload", handlers.UploadVideo)
-	videos.Get("/", handlers.GetVideos)
+	
+	// Public routes (no authentication required)
+	videos.Get("/", middleware.OptionalJWTMiddleware(), handlers.GetVideos)
 	videos.Get("/search/suggestions", handlers.GetSearchSuggestions)
 	videos.Get("/trending", handlers.GetTrendingVideos)
 	videos.Get("/recommendations/:user_id", handlers.GetRecommendations)
-	videos.Get("/:id", handlers.GetVideo)
+	videos.Get("/:id", middleware.OptionalJWTMiddleware(), handlers.GetVideo)
 	videos.Get("/:id/stream", handlers.StreamVideo)
 	videos.Get("/:id/thumbnail/:size", handlers.GetThumbnail)
-	videos.Put("/:id", handlers.UpdateVideo)
-	videos.Delete("/:id", handlers.DeleteVideo)
-	videos.Post("/:id/process-streaming", handlers.ProcessVideoForStreaming)
 	videos.Get("/:id/streaming-status", handlers.GetStreamingStatus)
 	videos.Get("/:id/manifest/:format", handlers.GetStreamingManifest)
-
-	// Like/dislike routes for videos
-	videos.Post("/:id/like", handlers.LikeVideo)
-	videos.Delete("/:id/like", handlers.RemoveLike)
-	videos.Get("/:id/likes", handlers.GetVideoLikeStats)
-
-	// Comment routes for videos
-	videos.Post("/:id/comments", handlers.CreateComment)
-	videos.Get("/:id/comments", handlers.GetComments)
+	videos.Get("/:id/comments", middleware.OptionalJWTMiddleware(), handlers.GetComments)
 	videos.Get("/:id/comments/count", handlers.GetCommentCount)
+	videos.Get("/:id/likes", middleware.OptionalJWTMiddleware(), handlers.GetVideoLikeStats)
 
-	// Comment management routes
+	// Protected routes (authentication required)
+	videos.Post("/upload", middleware.JWTMiddleware(), handlers.UploadVideo)
+	videos.Put("/:id", middleware.JWTMiddleware(), handlers.UpdateVideo)
+	videos.Delete("/:id", middleware.JWTMiddleware(), handlers.DeleteVideo)
+	videos.Post("/:id/process-streaming", middleware.JWTMiddleware(), handlers.ProcessVideoForStreaming)
+	videos.Post("/:id/like", middleware.JWTMiddleware(), handlers.LikeVideo)
+	videos.Delete("/:id/like", middleware.JWTMiddleware(), handlers.RemoveLike)
+	videos.Post("/:id/comments", middleware.JWTMiddleware(), handlers.CreateComment)
+
+	// Comment management routes (authentication required)
 	comments := api.Group("/comments")
-	comments.Put("/:id", handlers.UpdateComment)
-	comments.Delete("/:id", handlers.DeleteComment)
+	comments.Put("/:id", middleware.JWTMiddleware(), handlers.UpdateComment)
+	comments.Delete("/:id", middleware.JWTMiddleware(), handlers.DeleteComment)
 
 	// Category routes
 	categories := api.Group("/categories")
