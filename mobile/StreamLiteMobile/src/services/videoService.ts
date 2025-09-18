@@ -490,6 +490,46 @@ class VideoService {
     if (!thumbnailPath) return '';
     return `${VIDEO_SERVICE_URL}/${thumbnailPath}`;
   }
+
+  // Like/dislike operations
+  async likeVideo(videoId: number, isLike: boolean): Promise<VideoApiResponse> {
+    try {
+      const response: AxiosResponse = await videoApi.post(
+        `/api/v1/videos/${videoId}/like`,
+        { is_like: isLike }
+      );
+      return { data: response.data, success: true };
+    } catch (error: any) {
+      return {
+        error: { message: error.response?.data?.error || 'Failed to like/dislike video' },
+        success: false
+      };
+    }
+  }
+
+  async removeLike(videoId: number): Promise<VideoApiResponse> {
+    try {
+      const response: AxiosResponse = await videoApi.delete(`/api/v1/videos/${videoId}/like`);
+      return { data: response.data, success: true };
+    } catch (error: any) {
+      return {
+        error: { message: error.response?.data?.error || 'Failed to remove like/dislike' },
+        success: false
+      };
+    }
+  }
+
+  async getVideoLikeStats(videoId: number): Promise<VideoApiResponse> {
+    try {
+      const response: AxiosResponse = await videoApi.get(`/api/v1/videos/${videoId}/likes`);
+      return { data: response.data, success: true };
+    } catch (error: any) {
+      return {
+        error: { message: error.response?.data?.error || 'Failed to fetch like statistics' },
+        success: false
+      };
+    }
+  }
 }
 
 // Export singleton instance

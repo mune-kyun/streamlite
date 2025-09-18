@@ -67,6 +67,11 @@ func main() {
 	videos.Get("/:id/streaming-status", handlers.GetStreamingStatus)
 	videos.Get("/:id/manifest/:format", handlers.GetStreamingManifest)
 
+	// Like/dislike routes for videos
+	videos.Post("/:id/like", handlers.LikeVideo)
+	videos.Delete("/:id/like", handlers.RemoveLike)
+	videos.Get("/:id/likes", handlers.GetVideoLikeStats)
+
 	// Comment routes for videos
 	videos.Post("/:id/comments", handlers.CreateComment)
 	videos.Get("/:id/comments", handlers.GetComments)

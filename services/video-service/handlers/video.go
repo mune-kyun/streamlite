@@ -16,6 +16,7 @@ import (
 	"video-service/utils"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 // UploadVideo handles video file upload
@@ -298,6 +299,19 @@ func GetVideos(c *fiber.Ctx) error {
 		})
 	}
 
+	// Collect unique user IDs for batch fetching display names
+	userIDs := make([]uint, 0)
+	userIDSet := make(map[uint]bool)
+	for _, video := range videos {
+		if !userIDSet[video.UploadedBy] {
+			userIDs = append(userIDs, video.UploadedBy)
+			userIDSet[video.UploadedBy] = true
+		}
+	}
+
+	// Fetch display names for all users
+	displayNames := utils.FetchMultipleUserDisplayNames(userIDs)
+
 	// Convert to response format
 	videoResponses := make([]models.VideoResponse, len(videos))
 	for i, video := range videos {
@@ -306,25 +320,31 @@ func GetVideos(c *fiber.Ctx) error {
 			categoryName = video.Category.Name
 		}
 
+		uploaderDisplayName := displayNames[video.UploadedBy]
+		if uploaderDisplayName == "" {
+			uploaderDisplayName = fmt.Sprintf("User %d", video.UploadedBy)
+		}
+
 		videoResponses[i] = models.VideoResponse{
-			ID:            video.ID,
-			Title:         video.Title,
-			Description:   video.Description,
-			ThumbnailPath: video.ThumbnailPath,
+			ID:                  video.ID,
+			Title:               video.Title,
+			Description:         video.Description,
+			ThumbnailPath:       video.ThumbnailPath,
 			Thumbnails: models.Thumbnails{
 				Small:  video.ThumbnailSmall,
 				Medium: video.ThumbnailMedium,
 				Large:  video.ThumbnailLarge,
 			},
-			Duration:      video.Duration,
-			FileSize:      video.FileSize,
-			Format:        video.Format,
-			CategoryID:    video.CategoryID,
-			CategoryName:  categoryName,
-			UploadedBy:    video.UploadedBy,
-			ViewCount:     video.ViewCount,
-			CreatedAt:     video.CreatedAt,
-			UpdatedAt:     video.UpdatedAt,
+			Duration:            video.Duration,
+			FileSize:            video.FileSize,
+			Format:              video.Format,
+			CategoryID:          video.CategoryID,
+			CategoryName:        categoryName,
+			UploadedBy:          video.UploadedBy,
+			UploaderDisplayName: uploaderDisplayName,
+			ViewCount:           video.ViewCount,
+			CreatedAt:           video.CreatedAt,
+			UpdatedAt:           video.UpdatedAt,
 		}
 	}
 
@@ -369,25 +389,29 @@ func GetVideo(c *fiber.Ctx) error {
 		categoryName = video.Category.Name
 	}
 
+	// Fetch uploader display name
+	uploaderDisplayName := utils.FetchUserDisplayName(video.UploadedBy)
+
 	response := models.VideoResponse{
-		ID:            video.ID,
-		Title:         video.Title,
-		Description:   video.Description,
-		ThumbnailPath: video.ThumbnailPath,
+		ID:                  video.ID,
+		Title:               video.Title,
+		Description:         video.Description,
+		ThumbnailPath:       video.ThumbnailPath,
 		Thumbnails: models.Thumbnails{
 			Small:  video.ThumbnailSmall,
 			Medium: video.ThumbnailMedium,
 			Large:  video.ThumbnailLarge,
 		},
-		Duration:      video.Duration,
-		FileSize:      video.FileSize,
-		Format:        video.Format,
-		CategoryID:    video.CategoryID,
-		CategoryName:  categoryName,
-		UploadedBy:    video.UploadedBy,
-		ViewCount:     video.ViewCount + 1, // Return updated count
-		CreatedAt:     video.CreatedAt,
-		UpdatedAt:     video.UpdatedAt,
+		Duration:            video.Duration,
+		FileSize:            video.FileSize,
+		Format:              video.Format,
+		CategoryID:          video.CategoryID,
+		CategoryName:        categoryName,
+		UploadedBy:          video.UploadedBy,
+		UploaderDisplayName: uploaderDisplayName,
+		ViewCount:           video.ViewCount + 1, // Return updated count
+		CreatedAt:           video.CreatedAt,
+		UpdatedAt:           video.UpdatedAt,
 	}
 
 	return c.JSON(response)
@@ -1051,6 +1075,232 @@ func GetStreamingManifest(c *fiber.Ctx) error {
 	resp.Body.Read(body)
 	
 	return c.Send(body)
+}
+
+// LikeVideo handles liking or disliking a video
+// @Summary Like or dislike a video
+// @Description Like or dislike a video (requires authentication)
+// @Tags videos
+// @Accept json
+// @Produce json
+// @Param id path int true "Video ID"
+// @Param like body models.VideoLikeRequest true "Like data"
+// @Success 200 {object} models.VideoLikeResponse
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/videos/{id}/like [post]
+func LikeVideo(c *fiber.Ctx) error {
+	videoID, err := strconv.ParseUint(c.Params("id"), 10, 32)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid video ID",
+		})
+	}
+
+	// TODO: Get user ID from JWT token
+	userID := uint(1) // This should come from JWT middleware
+
+	// Check if video exists
+	var video models.Video
+	if err := database.DB.First(&video, videoID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "Video not found",
+		})
+	}
+
+	// Parse request body
+	var req models.VideoLikeRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	// Check if user already has a like/dislike for this video
+	var existingLike models.VideoLike
+	err = database.DB.Where("video_id = ? AND user_id = ?", videoID, userID).First(&existingLike).Error
+	
+	if err == nil {
+		// User already has a like/dislike, update it
+		existingLike.IsLike = req.IsLike
+		if err := database.DB.Save(&existingLike).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"error": "Failed to update like status",
+			})
+		}
+	} else if err == gorm.ErrRecordNotFound {
+		// Create new like/dislike
+		newLike := models.VideoLike{
+			VideoID: uint(videoID),
+			UserID:  userID,
+			IsLike:  req.IsLike,
+		}
+		if err := database.DB.Create(&newLike).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"error": "Failed to create like",
+			})
+		}
+	} else {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Database error",
+		})
+	}
+
+	// Get updated counts
+	likeCount, dislikeCount := getLikeCounts(uint(videoID))
+	
+	userLikeStatus := "like"
+	if !req.IsLike {
+		userLikeStatus = "dislike"
+	}
+
+	response := models.VideoLikeResponse{
+		VideoID:        uint(videoID),
+		UserID:         userID,
+		LikeCount:      likeCount,
+		DislikeCount:   dislikeCount,
+		UserLikeStatus: userLikeStatus,
+		Message:        fmt.Sprintf("Video %s successfully", userLikeStatus+"d"),
+	}
+
+	return c.JSON(response)
+}
+
+// RemoveLike handles removing a like/dislike from a video
+// @Summary Remove like/dislike from a video
+// @Description Remove user's like or dislike from a video (requires authentication)
+// @Tags videos
+// @Produce json
+// @Param id path int true "Video ID"
+// @Success 200 {object} models.VideoLikeResponse
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/videos/{id}/like [delete]
+func RemoveLike(c *fiber.Ctx) error {
+	videoID, err := strconv.ParseUint(c.Params("id"), 10, 32)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid video ID",
+		})
+	}
+
+	// TODO: Get user ID from JWT token
+	userID := uint(1) // This should come from JWT middleware
+
+	// Check if video exists
+	var video models.Video
+	if err := database.DB.First(&video, videoID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "Video not found",
+		})
+	}
+
+	// Find and delete the like/dislike
+	var existingLike models.VideoLike
+	err = database.DB.Where("video_id = ? AND user_id = ?", videoID, userID).First(&existingLike).Error
+	
+	if err == gorm.ErrRecordNotFound {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "No like/dislike found for this video",
+		})
+	} else if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Database error",
+		})
+	}
+
+	// Delete the like/dislike
+	if err := database.DB.Delete(&existingLike).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Failed to remove like",
+		})
+	}
+
+	// Get updated counts
+	likeCount, dislikeCount := getLikeCounts(uint(videoID))
+
+	response := models.VideoLikeResponse{
+		VideoID:        uint(videoID),
+		UserID:         userID,
+		LikeCount:      likeCount,
+		DislikeCount:   dislikeCount,
+		UserLikeStatus: "none",
+		Message:        "Like/dislike removed successfully",
+	}
+
+	return c.JSON(response)
+}
+
+// GetVideoLikeStats returns like/dislike statistics for a video
+// @Summary Get video like statistics
+// @Description Get like and dislike counts for a video, and user's like status if authenticated
+// @Tags videos
+// @Produce json
+// @Param id path int true "Video ID"
+// @Success 200 {object} models.VideoLikeStatsResponse
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/videos/{id}/likes [get]
+func GetVideoLikeStats(c *fiber.Ctx) error {
+	videoID, err := strconv.ParseUint(c.Params("id"), 10, 32)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid video ID",
+		})
+	}
+
+	// Check if video exists
+	var video models.Video
+	if err := database.DB.First(&video, videoID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "Video not found",
+		})
+	}
+
+	// Get like/dislike counts
+	likeCount, dislikeCount := getLikeCounts(uint(videoID))
+
+	// TODO: Get user ID from JWT token if authenticated
+	userID := uint(1) // This should come from JWT middleware
+
+	// Get user's like status if authenticated
+	var userLikeStatus *string
+	if userID > 0 {
+		var userLike models.VideoLike
+		err = database.DB.Where("video_id = ? AND user_id = ?", videoID, userID).First(&userLike).Error
+		if err == nil {
+			if userLike.IsLike {
+				status := "like"
+				userLikeStatus = &status
+			} else {
+				status := "dislike"
+				userLikeStatus = &status
+			}
+		}
+	}
+
+	response := models.VideoLikeStatsResponse{
+		VideoID:        uint(videoID),
+		LikeCount:      likeCount,
+		DislikeCount:   dislikeCount,
+		UserLikeStatus: userLikeStatus,
+	}
+
+	return c.JSON(response)
+}
+
+// getLikeCounts is a helper function to get like and dislike counts for a video
+func getLikeCounts(videoID uint) (int, int) {
+	var likeCount int64
+	var dislikeCount int64
+
+	database.DB.Model(&models.VideoLike{}).Where("video_id = ? AND is_like = ?", videoID, true).Count(&likeCount)
+	database.DB.Model(&models.VideoLike{}).Where("video_id = ? AND is_like = ?", videoID, false).Count(&dislikeCount)
+
+	return int(likeCount), int(dislikeCount)
 }
 
 // isValidVideoFile checks if the file has a valid video extension

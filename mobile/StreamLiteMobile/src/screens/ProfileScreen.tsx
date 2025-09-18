@@ -261,11 +261,16 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               <Text style={styles.userName}>{displayName}</Text>
               <Text style={styles.userHandle}>@{user.email.split('@')[0]}</Text>
               <Text style={styles.joinDate}>
-                Joined {new Date(user.created_at).toLocaleDateString('en-US', { 
+                Joined {user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { 
                   month: 'long', 
                   year: 'numeric' 
-                })}
+                }) : 'Recently'}
               </Text>
+              {profile?.bio && (
+                <Text style={styles.userBio} numberOfLines={2}>
+                  {profile.bio}
+                </Text>
+              )}
             </View>
             
             <View style={styles.statsContainer}>
@@ -299,22 +304,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
         {/* Action Buttons */}
         <View style={styles.actionButtonsSection}>
-          <View style={styles.actionButtonsRow}>
-            <Button
-              title="Edit Profile"
-              onPress={handleEditProfile}
-              variant="primary"
-              icon="create-outline"
-              style={styles.editButton}
-            />
-            <Button
-              title="Share"
-              onPress={() => Alert.alert('Share', 'Share feature coming soon!')}
-              variant="outline"
-              icon="share-outline"
-              style={styles.shareButton}
-            />
-          </View>
+          <Button
+            title="Edit Profile"
+            onPress={handleEditProfile}
+            variant="primary"
+            icon="create-outline"
+            style={styles.editButton}
+            fullWidth
+          />
           
           <Button
             title="Logout"
@@ -372,7 +369,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   <Text style={styles.videosLoadingText}>Loading videos...</Text>
                 </View>
               ) : userVideos.length > 0 ? (
-                userVideos.slice(0, 6).map((video, index) => (
+                userVideos.slice(0, 10).map((video, index) => (
                   <TouchableOpacity
                     key={`video-${video.id}-${index}`}
                     style={styles.videoGridItem}
@@ -599,6 +596,13 @@ const styles = StyleSheet.create({
     fontSize: darkTheme.fontSize.xs,
     color: darkTheme.colors.textSecondary,
   },
+  userBio: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+    textAlign: 'center',
+    marginTop: darkTheme.spacing.sm,
+    lineHeight: 18,
+  },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -623,16 +627,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: darkTheme.colors.border,
   },
-  actionButtonsRow: {
-    flexDirection: 'row',
-    gap: darkTheme.spacing.md,
-    marginBottom: darkTheme.spacing.md,
-  },
   editButton: {
-    flex: 1,
-  },
-  shareButton: {
-    flex: 1,
+    marginBottom: darkTheme.spacing.md,
   },
   logoutButton: {
     marginTop: darkTheme.spacing.sm,

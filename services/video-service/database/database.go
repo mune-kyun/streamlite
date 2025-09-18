@@ -32,6 +32,7 @@ func Connect() {
 		&models.Category{},
 		&models.Video{},
 		&models.VideoMetadata{},
+		&models.VideoLike{},
 		&models.Comment{},
 		&models.SearchQuery{},
 	)

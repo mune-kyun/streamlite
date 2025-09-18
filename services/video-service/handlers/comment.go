@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"video-service/database"
 	"video-service/models"
+	"video-service/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -93,17 +95,21 @@ func CreateComment(c *fiber.Ctx) error {
 		})
 	}
 
+	// Fetch author display name
+	authorDisplayName := utils.FetchUserDisplayName(comment.UserID)
+
 	// Return comment response
 	response := models.CommentResponse{
-		ID:              comment.ID,
-		VideoID:         comment.VideoID,
-		UserID:          comment.UserID,
-		ParentCommentID: comment.ParentCommentID,
-		Content:         comment.Content,
-		CreatedAt:       comment.CreatedAt,
-		UpdatedAt:       comment.UpdatedAt,
-		Replies:         make([]models.CommentResponse, 0), // Empty slice instead of nil
-		ReplyCount:      0,
+		ID:                comment.ID,
+		VideoID:           comment.VideoID,
+		UserID:            comment.UserID,
+		AuthorDisplayName: authorDisplayName,
+		ParentCommentID:   comment.ParentCommentID,
+		Content:           comment.Content,
+		CreatedAt:         comment.CreatedAt,
+		UpdatedAt:         comment.UpdatedAt,
+		Replies:           make([]models.CommentResponse, 0), // Empty slice instead of nil
+		ReplyCount:        0,
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(response)
@@ -177,44 +183,85 @@ func GetComments(c *fiber.Ctx) error {
 		})
 	}
 
+	// Collect unique user IDs for batch fetching display names
+	userIDs := make([]uint, 0)
+	userIDSet := make(map[uint]bool)
+	
+	// Add comment authors
+	for _, comment := range comments {
+		if !userIDSet[comment.UserID] {
+			userIDs = append(userIDs, comment.UserID)
+			userIDSet[comment.UserID] = true
+		}
+	}
+	
+	// Get all replies and add their authors
+	allReplies := make(map[uint][]models.Comment)
+	for _, comment := range comments {
+		var replies []models.Comment
+		database.DB.Where("parent_comment_id = ? AND is_deleted = ?", comment.ID, false).
+			Order("created_at ASC").
+			Find(&replies)
+		allReplies[comment.ID] = replies
+		
+		// Add reply authors to user ID list
+		for _, reply := range replies {
+			if !userIDSet[reply.UserID] {
+				userIDs = append(userIDs, reply.UserID)
+				userIDSet[reply.UserID] = true
+			}
+		}
+	}
+
+	// Fetch display names for all users
+	displayNames := utils.FetchMultipleUserDisplayNames(userIDs)
+
 	// Build response with nested replies
 	// Initialize as empty slice to ensure JSON array instead of null
 	commentResponses := make([]models.CommentResponse, 0)
 	
 	for _, comment := range comments {
-		// Get replies for this comment
-		var replies []models.Comment
-		database.DB.Where("parent_comment_id = ? AND is_deleted = ?", comment.ID, false).
-			Order("created_at ASC").
-			Find(&replies)
+		// Get author display name
+		authorDisplayName := displayNames[comment.UserID]
+		if authorDisplayName == "" {
+			authorDisplayName = fmt.Sprintf("User %d", comment.UserID)
+		}
 
 		// Build reply responses
 		// Initialize as empty slice to ensure JSON array instead of null
 		replyResponses := make([]models.CommentResponse, 0)
+		replies := allReplies[comment.ID]
 		for _, reply := range replies {
+			replyAuthorDisplayName := displayNames[reply.UserID]
+			if replyAuthorDisplayName == "" {
+				replyAuthorDisplayName = fmt.Sprintf("User %d", reply.UserID)
+			}
+			
 			replyResponses = append(replyResponses, models.CommentResponse{
-				ID:              reply.ID,
-				VideoID:         reply.VideoID,
-				UserID:          reply.UserID,
-				ParentCommentID: reply.ParentCommentID,
-				Content:         reply.Content,
-				CreatedAt:       reply.CreatedAt,
-				UpdatedAt:       reply.UpdatedAt,
-				Replies:         make([]models.CommentResponse, 0), // Empty slice instead of nil
-				ReplyCount:      0,
+				ID:                reply.ID,
+				VideoID:           reply.VideoID,
+				UserID:            reply.UserID,
+				AuthorDisplayName: replyAuthorDisplayName,
+				ParentCommentID:   reply.ParentCommentID,
+				Content:           reply.Content,
+				CreatedAt:         reply.CreatedAt,
+				UpdatedAt:         reply.UpdatedAt,
+				Replies:           make([]models.CommentResponse, 0), // Empty slice instead of nil
+				ReplyCount:        0,
 			})
 		}
 
 		commentResponses = append(commentResponses, models.CommentResponse{
-			ID:              comment.ID,
-			VideoID:         comment.VideoID,
-			UserID:          comment.UserID,
-			ParentCommentID: comment.ParentCommentID,
-			Content:         comment.Content,
-			CreatedAt:       comment.CreatedAt,
-			UpdatedAt:       comment.UpdatedAt,
-			Replies:         replyResponses,
-			ReplyCount:      len(replyResponses),
+			ID:                comment.ID,
+			VideoID:           comment.VideoID,
+			UserID:            comment.UserID,
+			AuthorDisplayName: authorDisplayName,
+			ParentCommentID:   comment.ParentCommentID,
+			Content:           comment.Content,
+			CreatedAt:         comment.CreatedAt,
+			UpdatedAt:         comment.UpdatedAt,
+			Replies:           replyResponses,
+			ReplyCount:        len(replyResponses),
 		})
 	}
 
@@ -295,17 +342,21 @@ func UpdateComment(c *fiber.Ctx) error {
 		})
 	}
 
+	// Fetch author display name
+	authorDisplayName := utils.FetchUserDisplayName(comment.UserID)
+
 	// Return updated comment
 	response := models.CommentResponse{
-		ID:              comment.ID,
-		VideoID:         comment.VideoID,
-		UserID:          comment.UserID,
-		ParentCommentID: comment.ParentCommentID,
-		Content:         comment.Content,
-		CreatedAt:       comment.CreatedAt,
-		UpdatedAt:       comment.UpdatedAt,
-		Replies:         make([]models.CommentResponse, 0), // Empty slice instead of nil
-		ReplyCount:      0,
+		ID:                comment.ID,
+		VideoID:           comment.VideoID,
+		UserID:            comment.UserID,
+		AuthorDisplayName: authorDisplayName,
+		ParentCommentID:   comment.ParentCommentID,
+		Content:           comment.Content,
+		CreatedAt:         comment.CreatedAt,
+		UpdatedAt:         comment.UpdatedAt,
+		Replies:           make([]models.CommentResponse, 0), // Empty slice instead of nil
+		ReplyCount:        0,
 	}
 
 	return c.JSON(response)
@@ -400,10 +451,10 @@ func GetCommentCount(c *fiber.Ctx) error {
 		})
 	}
 
-	// Count total comments (including replies)
+	// Count only parent comments (excluding replies)
 	var total int64
 	database.DB.Model(&models.Comment{}).
-		Where("video_id = ? AND is_deleted = ?", videoID, false).
+		Where("video_id = ? AND parent_comment_id IS NULL AND is_deleted = ?", videoID, false).
 		Count(&total)
 
 	return c.JSON(fiber.Map{

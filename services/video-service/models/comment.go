@@ -31,15 +31,16 @@ type CommentRequest struct {
 
 // CommentResponse represents the response format for comment data
 type CommentResponse struct {
-	ID              uint                `json:"id"`
-	VideoID         uint                `json:"video_id"`
-	UserID          uint                `json:"user_id"`
-	ParentCommentID *uint               `json:"parent_comment_id,omitempty"`
-	Content         string              `json:"content"`
-	CreatedAt       time.Time           `json:"created_at"`
-	UpdatedAt       time.Time           `json:"updated_at"`
-	Replies         []CommentResponse   `json:"replies,omitempty"`
-	ReplyCount      int                 `json:"reply_count"`
+	ID                uint                `json:"id"`
+	VideoID           uint                `json:"video_id"`
+	UserID            uint                `json:"user_id"`
+	AuthorDisplayName string              `json:"author_display_name"`
+	ParentCommentID   *uint               `json:"parent_comment_id,omitempty"`
+	Content           string              `json:"content"`
+	CreatedAt         time.Time           `json:"created_at"`
+	UpdatedAt         time.Time           `json:"updated_at"`
+	Replies           []CommentResponse   `json:"replies,omitempty"`
+	ReplyCount        int                 `json:"reply_count"`
 }
 
 // PaginatedCommentResponse represents paginated comment list response

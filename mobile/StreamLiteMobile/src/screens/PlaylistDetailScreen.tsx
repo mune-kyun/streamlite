@@ -11,6 +11,7 @@ import {
   Image,
   StatusBar,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +28,8 @@ export const PlaylistDetailScreen: React.FC<any> = ({ navigation, route }) => {
   const [playlist, setPlaylist] = useState<PlaylistWithVideos | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showVideoMenu, setShowVideoMenu] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<PlaylistVideoWithMeta | null>(null);
 
   const loadPlaylistVideos = useCallback(async () => {
     try {
@@ -52,10 +55,19 @@ export const PlaylistDetailScreen: React.FC<any> = ({ navigation, route }) => {
   }, [loadPlaylistVideos]);
 
 
-  const handleRemoveVideo = (videoId: number, videoTitle: string) => {
+  const handleShowVideoMenu = (video: PlaylistVideoWithMeta) => {
+    setSelectedVideo(video);
+    setShowVideoMenu(true);
+  };
+
+  const handleRemoveVideo = async () => {
+    if (!selectedVideo) return;
+    
+    setShowVideoMenu(false);
+    
     Alert.alert(
       'Remove Video',
-      `Remove "${videoTitle}" from this playlist?`,
+      `Remove "${selectedVideo.video_title || 'Unknown Title'}" from this playlist?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -63,7 +75,7 @@ export const PlaylistDetailScreen: React.FC<any> = ({ navigation, route }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await PlaylistService.removeVideoFromPlaylist(initialPlaylist.id, videoId);
+              await PlaylistService.removeVideoFromPlaylist(initialPlaylist.id, selectedVideo.video_id);
               await loadPlaylistVideos();
               Alert.alert('Success', 'Video removed from playlist');
             } catch (error) {
@@ -74,6 +86,23 @@ export const PlaylistDetailScreen: React.FC<any> = ({ navigation, route }) => {
         },
       ]
     );
+  };
+
+  const handlePlayNext = () => {
+    if (!selectedVideo || !playlist) return;
+    
+    setShowVideoMenu(false);
+    
+    // Find current video index
+    const currentIndex = playlist.videos.findIndex(v => v.video_id === selectedVideo.video_id);
+    
+    if (currentIndex !== -1 && currentIndex < playlist.videos.length - 1) {
+      // Play next video in playlist
+      const nextVideo = playlist.videos[currentIndex + 1];
+      handlePlayVideo(nextVideo);
+    } else {
+      Alert.alert('Info', 'This is the last video in the playlist');
+    }
   };
 
   const handlePlayVideo = (video: PlaylistVideoWithMeta) => {
@@ -203,16 +232,6 @@ export const PlaylistDetailScreen: React.FC<any> = ({ navigation, route }) => {
               />
               <Text style={styles.playAllButtonText}>Play All</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.shuffleButton}>
-              <Ionicons 
-                name="shuffle" 
-                size={12} 
-                color={darkTheme.colors.textSecondary} 
-                style={styles.shuffleButtonIcon}
-              />
-              <Text style={styles.shuffleButtonText}>Shuffle</Text>
-            </TouchableOpacity>
           </View>
           
           <Text style={styles.createdDate}>
@@ -280,7 +299,7 @@ export const PlaylistDetailScreen: React.FC<any> = ({ navigation, route }) => {
                 
                 <TouchableOpacity 
                   style={styles.moreButton}
-                  onPress={() => handleRemoveVideo(video.video_id, video.video_title || 'Unknown Title')}
+                  onPress={() => handleShowVideoMenu(video)}
                 >
                   <Ionicons 
                     name="ellipsis-vertical" 
@@ -315,6 +334,46 @@ export const PlaylistDetailScreen: React.FC<any> = ({ navigation, route }) => {
         {/* Bottom padding for tab bar */}
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* Video Menu Modal */}
+      <Modal
+        visible={showVideoMenu}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowVideoMenu(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowVideoMenu(false)}
+        >
+          <View style={styles.videoMenuContainer}>
+            <View style={styles.videoMenuHeader}>
+              <Text style={styles.videoMenuTitle}>
+                {selectedVideo?.video_title || 'Video Options'}
+              </Text>
+            </View>
+            
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={handlePlayNext}
+            >
+              <Ionicons name="play-forward" size={20} color={darkTheme.colors.textPrimary} />
+              <Text style={styles.menuItemText}>Play Next</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={handleRemoveVideo}
+            >
+              <Ionicons name="trash-outline" size={20} color={darkTheme.colors.error} />
+              <Text style={[styles.menuItemText, { color: darkTheme.colors.error }]}>
+                Remove from Playlist
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -422,23 +481,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: darkTheme.fontSize.sm,
     fontWeight: '500',
-  },
-  shuffleButton: {
-    backgroundColor: darkTheme.colors.card,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: darkTheme.spacing.lg,
-    paddingVertical: darkTheme.spacing.sm,
-    borderRadius: darkTheme.borderRadius.full,
-    borderWidth: 1,
-    borderColor: darkTheme.colors.border,
-  },
-  shuffleButtonIcon: {
-    marginRight: darkTheme.spacing.sm,
-  },
-  shuffleButtonText: {
-    color: darkTheme.colors.textSecondary,
-    fontSize: darkTheme.fontSize.sm,
   },
   createdDate: {
     fontSize: darkTheme.fontSize.xs,
@@ -549,6 +591,43 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: darkTheme.fontSize.sm,
     fontWeight: '500',
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: darkTheme.spacing.lg,
+  },
+  videoMenuContainer: {
+    backgroundColor: darkTheme.colors.surface,
+    borderRadius: darkTheme.borderRadius.lg,
+    minWidth: 280,
+    maxWidth: 320,
+    overflow: 'hidden',
+  },
+  videoMenuHeader: {
+    padding: darkTheme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: darkTheme.colors.border,
+  },
+  videoMenuTitle: {
+    fontSize: darkTheme.fontSize.md,
+    fontWeight: darkTheme.fontWeight.semibold,
+    color: darkTheme.colors.textPrimary,
+    textAlign: 'center',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: darkTheme.spacing.lg,
+    gap: darkTheme.spacing.md,
+  },
+  menuItemText: {
+    fontSize: darkTheme.fontSize.md,
+    color: darkTheme.colors.textPrimary,
+    flex: 1,
   },
 });
 

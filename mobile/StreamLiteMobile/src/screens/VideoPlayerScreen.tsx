@@ -60,6 +60,11 @@ export const VideoPlayerScreen: React.FC = () => {
   const [loadingComments, setLoadingComments] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [postingComment, setPostingComment] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyingToComment, setReplyingToComment] = useState<any | null>(null);
+  const [likeCount, setLikeCount] = useState(0);
+  const [dislikeCount, setDislikeCount] = useState(0);
+  const [userLikeStatus, setUserLikeStatus] = useState<'like' | 'dislike' | null>(null);
 
   // Auto-hide controls after 3 seconds
   useEffect(() => {
@@ -93,6 +98,14 @@ export const VideoPlayerScreen: React.FC = () => {
         const videoResponse = await videoService.getVideo(video.id);
         if (videoResponse.success && videoResponse.data) {
           setVideoData(videoResponse.data);
+        }
+
+        // Load like/dislike stats
+        const likeStatsResponse = await videoService.getVideoLikeStats(video.id);
+        if (likeStatsResponse.success && likeStatsResponse.data) {
+          setLikeCount(likeStatsResponse.data.like_count || 0);
+          setDislikeCount(likeStatsResponse.data.dislike_count || 0);
+          setUserLikeStatus(likeStatsResponse.data.user_like_status || null);
         }
 
         // Load comments
@@ -161,19 +174,22 @@ export const VideoPlayerScreen: React.FC = () => {
     try {
       const commentData = {
         content: newComment.trim(),
+        parent_comment_id: replyingTo || undefined,
       };
 
       const result = await videoService.createComment(video.id, commentData);
 
       if (result.success) {
         setNewComment('');
+        setReplyingTo(null);
+        setReplyingToComment(null);
         // Refresh comments to show the new comment
         const commentsResponse = await videoService.getComments(video.id, { page: 1, limit: 20 });
         if (commentsResponse.success && commentsResponse.data) {
           setComments(commentsResponse.data.comments || []);
           setCommentCount(commentsResponse.data.total || 0);
         }
-        Alert.alert('Success', 'Comment posted successfully!');
+        Alert.alert('Success', replyingTo ? 'Reply posted successfully!' : 'Comment posted successfully!');
       } else {
         Alert.alert('Error', result.error?.message || 'Failed to post comment');
       }
@@ -182,6 +198,77 @@ export const VideoPlayerScreen: React.FC = () => {
       Alert.alert('Error', 'Failed to post comment');
     } finally {
       setPostingComment(false);
+    }
+  };
+
+  const handleReply = (commentId: number) => {
+    const comment = comments.find(c => c.id === commentId);
+    if (comment) {
+      setReplyingTo(commentId);
+      setReplyingToComment(comment);
+    }
+  };
+
+  const cancelReply = () => {
+    setReplyingTo(null);
+    setReplyingToComment(null);
+  };
+
+  const handleLike = async () => {
+    try {
+      if (userLikeStatus === 'like') {
+        // Remove like
+        const result = await videoService.removeLike(video.id);
+        if (result.success) {
+          setUserLikeStatus(null);
+          setLikeCount(result.data.like_count);
+          setDislikeCount(result.data.dislike_count);
+        } else {
+          Alert.alert('Error', result.error?.message || 'Failed to remove like');
+        }
+      } else {
+        // Add like
+        const result = await videoService.likeVideo(video.id, true);
+        if (result.success) {
+          setUserLikeStatus('like');
+          setLikeCount(result.data.like_count);
+          setDislikeCount(result.data.dislike_count);
+        } else {
+          Alert.alert('Error', result.error?.message || 'Failed to like video');
+        }
+      }
+    } catch (error) {
+      console.error('Error handling like:', error);
+      Alert.alert('Error', 'Failed to update like status');
+    }
+  };
+
+  const handleDislike = async () => {
+    try {
+      if (userLikeStatus === 'dislike') {
+        // Remove dislike
+        const result = await videoService.removeLike(video.id);
+        if (result.success) {
+          setUserLikeStatus(null);
+          setLikeCount(result.data.like_count);
+          setDislikeCount(result.data.dislike_count);
+        } else {
+          Alert.alert('Error', result.error?.message || 'Failed to remove dislike');
+        }
+      } else {
+        // Add dislike
+        const result = await videoService.likeVideo(video.id, false);
+        if (result.success) {
+          setUserLikeStatus('dislike');
+          setLikeCount(result.data.like_count);
+          setDislikeCount(result.data.dislike_count);
+        } else {
+          Alert.alert('Error', result.error?.message || 'Failed to dislike video');
+        }
+      }
+    } catch (error) {
+      console.error('Error handling dislike:', error);
+      Alert.alert('Error', 'Failed to update dislike status');
     }
   };
 
@@ -235,14 +322,32 @@ export const VideoPlayerScreen: React.FC = () => {
           </View>
           
           <View style={styles.actionIcons}>
-            <TouchableOpacity style={styles.actionIcon}>
-              <Ionicons name="thumbs-up-outline" size={18} color={darkTheme.colors.textSecondary} />
-              <Text style={styles.actionText}>{(videoData as any).like_count || 0}</Text>
+            <TouchableOpacity style={styles.actionIcon} onPress={handleLike}>
+              <Ionicons 
+                name={userLikeStatus === 'like' ? "thumbs-up" : "thumbs-up-outline"} 
+                size={18} 
+                color={userLikeStatus === 'like' ? darkTheme.colors.accent : darkTheme.colors.textSecondary} 
+              />
+              <Text style={[
+                styles.actionText,
+                userLikeStatus === 'like' && { color: darkTheme.colors.accent }
+              ]}>
+                {likeCount || (videoData as any).like_count || 0}
+              </Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.actionIcon}>
-              <Ionicons name="thumbs-down-outline" size={18} color={darkTheme.colors.textSecondary} />
-              <Text style={styles.actionText}>{(videoData as any).dislike_count || 0}</Text>
+            <TouchableOpacity style={styles.actionIcon} onPress={handleDislike}>
+              <Ionicons 
+                name={userLikeStatus === 'dislike' ? "thumbs-down" : "thumbs-down-outline"} 
+                size={18} 
+                color={userLikeStatus === 'dislike' ? darkTheme.colors.error : darkTheme.colors.textSecondary} 
+              />
+              <Text style={[
+                styles.actionText,
+                userLikeStatus === 'dislike' && { color: darkTheme.colors.error }
+              ]}>
+                {dislikeCount || (videoData as any).dislike_count || 0}
+              </Text>
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.actionIcon} onPress={scrollToComments}>
@@ -263,8 +368,7 @@ export const VideoPlayerScreen: React.FC = () => {
               <Ionicons name="person-outline" size={20} color={darkTheme.colors.textSecondary} />
             </View>
             <View style={styles.channelDetails}>
-              <Text style={styles.channelName}>{(videoData as any).uploader || 'Unknown Creator'}</Text>
-              <Text style={styles.subscriberCount}>Creator</Text>
+              <Text style={styles.channelName}>{(videoData as any).uploader_display_name || `User ${videoData.uploaded_by}` || 'StreamLite Creator'}</Text>
             </View>
           </View>
           <Button
@@ -297,24 +401,62 @@ export const VideoPlayerScreen: React.FC = () => {
     </View>
   );
 
-  // Render comment item
+  // Render comment item with replies
   const renderComment = ({ item }: { item: any }) => (
-    <View style={styles.commentItem}>
-      <View style={styles.commentAvatar}>
-        <Ionicons name="person-outline" size={16} color={darkTheme.colors.textSecondary} />
+    <View>
+      <View style={styles.commentItem}>
+        <View style={styles.commentAvatar}>
+          <Ionicons name="person-outline" size={16} color={darkTheme.colors.textSecondary} />
+        </View>
+        <View style={styles.commentContent}>
+          <Text style={styles.commentAuthor}>{item.author_display_name || `User ${item.user_id}` || 'Anonymous'}</Text>
+          <Text style={styles.commentText}>{item.content}</Text>
+          <View style={styles.commentActions}>
+            <Text style={styles.commentTime}>{formatDate(item.created_at)}</Text>
+            <TouchableOpacity 
+              style={styles.replyButton}
+              onPress={() => handleReply(item.id)}
+            >
+              <Text style={styles.replyButtonText}>Reply</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
-      <View style={styles.commentContent}>
-        <Text style={styles.commentAuthor}>{item.author || 'Anonymous'}</Text>
-        <Text style={styles.commentText}>{item.content}</Text>
-        <Text style={styles.commentTime}>{formatDate(item.created_at)}</Text>
-      </View>
+      
+      {/* Render replies if they exist */}
+      {item.replies && item.replies.length > 0 && (
+        <View style={styles.repliesContainer}>
+          {item.replies.map((reply: any, index: number) => (
+            <View key={`reply-${reply.id}-${index}`} style={styles.replyItem}>
+              <View style={styles.replyLine} />
+              <View style={styles.commentAvatar}>
+                <Ionicons name="person-outline" size={14} color={darkTheme.colors.textSecondary} />
+              </View>
+              <View style={styles.commentContent}>
+                <Text style={styles.commentAuthor}>{reply.author_display_name || `User ${reply.user_id}` || 'Anonymous'}</Text>
+                <Text style={styles.commentText}>{reply.content}</Text>
+                <View style={styles.commentActions}>
+                  <Text style={styles.commentTime}>{formatDate(reply.created_at)}</Text>
+                  <TouchableOpacity 
+                    style={styles.replyButton}
+                    onPress={() => handleReply(item.id)}
+                  >
+                    <Text style={styles.replyButtonText}>Reply</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 
   return (
     <KeyboardAvoidingView 
       style={[styles.container, isFullscreen && styles.fullscreenContainer]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       <StatusBar barStyle="light-content" backgroundColor={darkTheme.colors.background} />
       
@@ -457,6 +599,16 @@ export const VideoPlayerScreen: React.FC = () => {
       {/* Comment Input Section */}
       {!isFullscreen && (
         <View style={[styles.commentInputContainer, { paddingBottom: insets.bottom + 16 }]}>
+          {replyingToComment && (
+            <View style={styles.replyIndicator}>
+              <Text style={styles.replyIndicatorText}>
+                Replying to {replyingToComment.author || 'Anonymous'}: "{replyingToComment.content.substring(0, 50)}..."
+              </Text>
+              <TouchableOpacity onPress={cancelReply} style={styles.cancelReplyButton}>
+                <Ionicons name="close" size={16} color={darkTheme.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+          )}
           <View style={styles.commentInputRow}>
             <View style={styles.commentUserAvatar}>
               <Ionicons name="person-outline" size={16} color={darkTheme.colors.textSecondary} />
@@ -465,7 +617,7 @@ export const VideoPlayerScreen: React.FC = () => {
               style={styles.commentTextInput}
               value={newComment}
               onChangeText={setNewComment}
-              placeholder="Add a comment..."
+              placeholder={replyingToComment ? "Write a reply..." : "Add a comment..."}
               placeholderTextColor={darkTheme.colors.textSecondary}
               multiline
               maxLength={1000}
@@ -843,6 +995,21 @@ const styles = StyleSheet.create({
     fontSize: darkTheme.fontSize.xs,
     color: darkTheme.colors.textSecondary,
   },
+  commentActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: darkTheme.spacing.xs,
+  },
+  replyButton: {
+    paddingVertical: darkTheme.spacing.xs,
+    paddingHorizontal: darkTheme.spacing.sm,
+  },
+  replyButtonText: {
+    fontSize: darkTheme.fontSize.xs,
+    color: darkTheme.colors.accent,
+    fontWeight: darkTheme.fontWeight.medium,
+  },
   emptyComments: {
     padding: darkTheme.spacing.xl,
     alignItems: 'center',
@@ -853,7 +1020,7 @@ const styles = StyleSheet.create({
   },
   // Comment Input Styles
   commentInputContainer: {
-    backgroundColor: darkTheme.colors.surface,
+    backgroundColor: darkTheme.colors.background,
     borderTopWidth: 1,
     borderTopColor: darkTheme.colors.border,
     paddingHorizontal: darkTheme.spacing.md,
@@ -894,5 +1061,43 @@ const styles = StyleSheet.create({
   },
   postCommentButtonDisabled: {
     backgroundColor: darkTheme.colors.gray600,
+  },
+  // Reply Indicator Styles
+  replyIndicator: {
+    backgroundColor: darkTheme.colors.card,
+    padding: darkTheme.spacing.sm,
+    borderRadius: darkTheme.borderRadius.sm,
+    marginBottom: darkTheme.spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  replyIndicatorText: {
+    fontSize: darkTheme.fontSize.xs,
+    color: darkTheme.colors.accent,
+    flex: 1,
+    marginRight: darkTheme.spacing.sm,
+  },
+  cancelReplyButton: {
+    padding: darkTheme.spacing.xs,
+  },
+  // Reply Styles
+  repliesContainer: {
+    marginLeft: darkTheme.spacing.xl,
+    borderLeftWidth: 2,
+    borderLeftColor: darkTheme.colors.border,
+    paddingLeft: darkTheme.spacing.md,
+  },
+  replyItem: {
+    flexDirection: 'row',
+    padding: darkTheme.spacing.md,
+    marginHorizontal: darkTheme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: darkTheme.colors.border,
+  },
+  replyLine: {
+    width: 2,
+    backgroundColor: darkTheme.colors.accent,
+    marginRight: darkTheme.spacing.sm,
   },
 });

@@ -57,6 +57,20 @@ type VideoMetadata struct {
 	Video Video `json:"video,omitempty" gorm:"foreignKey:VideoID"`
 }
 
+// VideoLike represents a like or dislike on a video
+type VideoLike struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	VideoID   uint      `json:"video_id" gorm:"not null;index"`
+	UserID    uint      `json:"user_id" gorm:"not null;index"`
+	IsLike    bool      `json:"is_like"` // true for like, false for dislike
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	
+	// Relationships
+	Video Video `json:"video,omitempty" gorm:"foreignKey:VideoID"`
+}
+
 // VideoUploadRequest represents the request payload for video upload
 type VideoUploadRequest struct {
 	Title       string `json:"title" validate:"required,min=1,max=255"`
@@ -79,20 +93,24 @@ type CategoryRequest struct {
 
 // VideoResponse represents the response format for video data
 type VideoResponse struct {
-	ID            uint      `json:"id"`
-	Title         string    `json:"title"`
-	Description   string    `json:"description"`
-	ThumbnailPath string    `json:"thumbnail_path"` // Legacy field for backward compatibility
-	Thumbnails    Thumbnails `json:"thumbnails"`
-	Duration      int       `json:"duration"`
-	FileSize      int64     `json:"file_size"`
-	Format        string    `json:"format"`
-	CategoryID    uint      `json:"category_id"`
-	CategoryName  string    `json:"category_name,omitempty"`
-	UploadedBy    uint      `json:"uploaded_by"`
-	ViewCount     int       `json:"view_count"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	ID                  uint      `json:"id"`
+	Title               string    `json:"title"`
+	Description         string    `json:"description"`
+	ThumbnailPath       string    `json:"thumbnail_path"` // Legacy field for backward compatibility
+	Thumbnails          Thumbnails `json:"thumbnails"`
+	Duration            int       `json:"duration"`
+	FileSize            int64     `json:"file_size"`
+	Format              string    `json:"format"`
+	CategoryID          uint      `json:"category_id"`
+	CategoryName        string    `json:"category_name,omitempty"`
+	UploadedBy          uint      `json:"uploaded_by"`
+	UploaderDisplayName string    `json:"uploader_display_name"`
+	ViewCount           int       `json:"view_count"`
+	LikeCount           int       `json:"like_count"`
+	DislikeCount        int       `json:"dislike_count"`
+	UserLikeStatus      *string   `json:"user_like_status,omitempty"` // "like", "dislike", or null
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
 }
 
 // Thumbnails represents the different thumbnail sizes for API responses
@@ -109,4 +127,27 @@ type PaginatedVideoResponse struct {
 	Page   int             `json:"page"`
 	Limit  int             `json:"limit"`
 	Pages  int             `json:"pages"`
+}
+
+// VideoLikeRequest represents the request payload for liking/disliking a video
+type VideoLikeRequest struct {
+	IsLike bool `json:"is_like"` // true for like, false for dislike
+}
+
+// VideoLikeResponse represents the response format for video like operations
+type VideoLikeResponse struct {
+	VideoID        uint   `json:"video_id"`
+	UserID         uint   `json:"user_id"`
+	LikeCount      int    `json:"like_count"`
+	DislikeCount   int    `json:"dislike_count"`
+	UserLikeStatus string `json:"user_like_status"` // "like", "dislike", or "none"
+	Message        string `json:"message"`
+}
+
+// VideoLikeStatsResponse represents the response format for video like statistics
+type VideoLikeStatsResponse struct {
+	VideoID        uint    `json:"video_id"`
+	LikeCount      int     `json:"like_count"`
+	DislikeCount   int     `json:"dislike_count"`
+	UserLikeStatus *string `json:"user_like_status,omitempty"` // "like", "dislike", or null
 }
