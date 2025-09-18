@@ -99,6 +99,9 @@ services/video-service/storage/thumbnails/*
 !services/video-service/storage/thumbnails/medium/.gitkeep
 !services/video-service/storage/thumbnails/small/.gitkeep
 
+# Streaming in videos
+services/video-service/storage/streaming/*
+
 # Streaming segments
 services/streaming-service/storage/streaming/*
 !services/streaming-service/storage/streaming/.gitkeep
