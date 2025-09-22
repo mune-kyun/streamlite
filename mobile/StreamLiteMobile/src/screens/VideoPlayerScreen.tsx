@@ -815,6 +815,38 @@ export const VideoPlayerScreen: React.FC = () => {
           onLoad={() => setIsLoading(false)}
           onError={(error) => {
             console.error('Video error:', error);
+            
+            // Check if it's an audio focus error (common during screen sharing)
+            let errorMessage = '';
+            try {
+              if (typeof error === 'string') {
+                errorMessage = error;
+              } else if (error && typeof error === 'object') {
+                errorMessage = (error as any).message || JSON.stringify(error);
+              } else {
+                errorMessage = String(error);
+              }
+            } catch (e) {
+              errorMessage = 'Unknown error';
+            }
+            
+            if (errorMessage.toLowerCase().includes('audio focus') || 
+                errorMessage.toLowerCase().includes('audiofocus') ||
+                errorMessage.toLowerCase().includes('audio session')) {
+              // Ignore audio focus errors during screen sharing - just log and continue
+              console.log('Audio focus error ignored during screen sharing:', errorMessage);
+              setIsLoading(false);
+              
+              // Try to start video playback anyway (without audio)
+              if (videoRef.current) {
+                videoRef.current.playAsync().catch((playError) => {
+                  console.log('Could not start playback after audio focus error:', playError);
+                });
+              }
+              return;
+            }
+            
+            // Handle real video errors normally
             setIsLoading(false);
             Alert.alert('Error', 'Failed to load video');
           }}
