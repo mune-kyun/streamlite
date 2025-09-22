@@ -11,6 +11,7 @@ import {
   Modal,
   StatusBar,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,6 +38,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'videos' | 'playlists'>('videos');
   const [editForm, setEditForm] = useState({
@@ -84,40 +86,39 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     
     setIsLoadingStats(true);
     try {
-      console.log('Loading user statistics...');
+      console.log('Loading user statistics for user ID:', user.id);
       
-      // Fetch all videos to calculate user stats
-      // Note: In a real app, this would be optimized with a dedicated user stats endpoint
-      const videosResponse = await videoService.getVideos({ limit: 1000 }); // Get a large number to capture all videos
+      // Fetch user-specific videos using the new endpoint
+      const videosResponse = await videoService.getUserVideos(user.id, { limit: 1000 });
       
       if (videosResponse.success && videosResponse.data) {
-        const allVideos = videosResponse.data.videos;
+        const userVideos = videosResponse.data.videos;
         
-        // For now, we'll use all videos as user videos since we don't have user-specific filtering
-        // In a real app, videos would have a user_id field to filter by
-        setUserVideos(allVideos);
+        // Set user videos for display
+        setUserVideos(userVideos);
         
-        // Calculate stats from all videos (this is a placeholder approach)
-        const totalViews = allVideos.reduce((sum, video) => sum + (video.view_count || 0), 0);
+        // Calculate stats from user's videos
+        const totalViews = userVideos.reduce((sum, video) => sum + (video.view_count || 0), 0);
         
         setUserStats({
-          videoCount: allVideos.length,
+          videoCount: userVideos.length,
           totalViews: totalViews,
           subscribers: 0, // This would come from a future subscriber system
         });
         
         console.log('User stats loaded:', {
-          videoCount: allVideos.length,
+          videoCount: userVideos.length,
           totalViews: totalViews,
         });
       } else {
-        console.log('Failed to load videos for stats:', videosResponse.error);
+        console.log('Failed to load user videos:', videosResponse.error);
         // Set default stats if loading fails
         setUserStats({
           videoCount: 0,
           totalViews: 0,
           subscribers: 0,
         });
+        setUserVideos([]);
       }
     } catch (error: any) {
       console.error('Error loading user stats:', error);
@@ -127,6 +128,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         totalViews: 0,
         subscribers: 0,
       });
+      setUserVideos([]);
     } finally {
       setIsLoadingStats(false);
     }
@@ -203,6 +205,20 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     );
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        loadUserProfile(),
+        loadUserStats()
+      ]);
+    } catch (error) {
+      console.error('Error refreshing profile data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const navigateToSettings = () => {
     navigation.navigate('Settings');
   };
@@ -240,6 +256,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         style={styles.content}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: insets.top }}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor={darkTheme.colors.accent}
+          />
+        }
       >
         {/* Profile Header Section */}
         <View style={styles.profileHeader}>

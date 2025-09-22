@@ -34,9 +34,15 @@ var jwtSecret = []byte(getJWTSecret())
 // JWTMiddleware validates JWT tokens and extracts user information
 func JWTMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		fmt.Printf("=== USER SERVICE JWT MIDDLEWARE ===\n")
+		fmt.Printf("Request URL: %s %s\n", c.Method(), c.OriginalURL())
+		
 		// Get token from Authorization header
 		authHeader := c.Get("Authorization")
+		fmt.Printf("Authorization Header: %s\n", authHeader)
+		
 		if authHeader == "" {
+			fmt.Printf("❌ No Authorization header provided\n")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Authorization header is required",
 			})
@@ -44,6 +50,7 @@ func JWTMiddleware() fiber.Handler {
 
 		// Check if header starts with "Bearer "
 		if !strings.HasPrefix(authHeader, "Bearer ") {
+			fmt.Printf("❌ Authorization header doesn't start with 'Bearer '\n")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Authorization header must start with 'Bearer '",
 			})
@@ -52,21 +59,27 @@ func JWTMiddleware() fiber.Handler {
 		// Extract token
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == "" {
+			fmt.Printf("❌ Empty token after Bearer prefix\n")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Token is required",
 			})
 		}
 
+		fmt.Printf("Token (first 20 chars): %s...\n", tokenString[:min(20, len(tokenString))])
+		fmt.Printf("JWT Secret (first 10 chars): %s...\n", string(jwtSecret)[:min(10, len(jwtSecret))])
+
 		// Parse and validate token
 		token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 			// Validate signing method
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				fmt.Printf("❌ Unexpected signing method: %v\n", token.Header["alg"])
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 			return jwtSecret, nil
 		})
 
 		if err != nil {
+			fmt.Printf("❌ Token parsing failed: %v\n", err)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid token: " + err.Error(),
 			})
@@ -75,6 +88,7 @@ func JWTMiddleware() fiber.Handler {
 		// Extract claims
 		claims, ok := token.Claims.(*JWTClaims)
 		if !ok || !token.Valid {
+			fmt.Printf("❌ Invalid token claims or token not valid\n")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid token claims",
 			})
@@ -82,18 +96,33 @@ func JWTMiddleware() fiber.Handler {
 
 		// Check if token is expired
 		if claims.ExpiresAt != nil && claims.ExpiresAt.Time.Before(time.Now()) {
+			fmt.Printf("❌ Token has expired: %v\n", claims.ExpiresAt.Time)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Token has expired",
 			})
 		}
+
+		fmt.Printf("✅ Token validated successfully\n")
+		fmt.Printf("User ID: %d\n", claims.UserID)
+		fmt.Printf("User Email: %s\n", claims.Email)
+		fmt.Printf("User Role: %s\n", claims.Role)
 
 		// Store user information in context
 		c.Locals("userID", claims.UserID)
 		c.Locals("userEmail", claims.Email)
 		c.Locals("userRole", claims.Role)
 
+		fmt.Printf("=== JWT MIDDLEWARE COMPLETE ===\n")
 		return c.Next()
 	}
+}
+
+// Helper function for min
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // OptionalJWTMiddleware validates JWT tokens if present but doesn't require them

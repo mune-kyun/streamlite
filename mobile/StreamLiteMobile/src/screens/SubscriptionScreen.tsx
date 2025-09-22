@@ -57,16 +57,35 @@ export const SubscriptionScreen: React.FC<SubscriptionScreenProps> = ({ navigati
       
       if (result.success && result.data) {
         console.log('Subscriptions loaded:', result.data);
-        // Transform the subscription data to match our interface
-        const transformedSubscriptions = result.data.subscriptions.map(sub => ({
-          id: sub.id,
-          user_id: sub.following_id,
-          display_name: sub.display_name || `User ${sub.following_id}`,
-          avatar: sub.avatar,
-          subscriber_count: 0, // TODO: Get from user stats
-          video_count: 0, // TODO: Get from user stats
-          subscribed_at: sub.created_at,
-        }));
+        // Add null safety check for subscriptions array
+        const subscriptionsArray = result.data.subscriptions || [];
+        
+        // Transform the subscription data and fetch subscriber counts
+        const transformedSubscriptions = await Promise.all(
+          subscriptionsArray.map(async (sub) => {
+            // Fetch subscriber count for each user
+            let subscriberCount = 0;
+            try {
+              const statsResult = await subscriptionService.getSubscriptionStats(sub.following_id);
+              if (statsResult.success && statsResult.data) {
+                subscriberCount = statsResult.data.subscriber_count;
+              }
+            } catch (error) {
+              console.error(`Error fetching stats for user ${sub.following_id}:`, error);
+            }
+
+            return {
+              id: sub.id,
+              user_id: sub.following_id,
+              display_name: sub.display_name || `User ${sub.following_id}`,
+              avatar: sub.avatar,
+              subscriber_count: subscriberCount,
+              video_count: 0, // TODO: Get from video stats when available
+              subscribed_at: sub.created_at,
+            };
+          })
+        );
+        
         setSubscriptions(transformedSubscriptions);
       } else {
         console.error('Failed to load subscriptions:', result.error);
@@ -130,7 +149,7 @@ export const SubscriptionScreen: React.FC<SubscriptionScreenProps> = ({ navigati
           <View style={styles.userDetails}>
             <Text style={styles.displayName}>{subscription.display_name}</Text>
             <Text style={styles.userStats}>
-              {subscription.subscriber_count.toLocaleString()} subscribers • {subscription.video_count} videos
+              {subscription.subscriber_count.toLocaleString()} subscribers
             </Text>
           </View>
         </View>

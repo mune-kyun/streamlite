@@ -215,26 +215,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             />
           </View>
 
-          {/* Social Login */}
-          <View style={styles.socialSection}>
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>Or continue with</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <View style={styles.socialButtons}>
-              <TouchableOpacity style={styles.socialButton}>
-                <Ionicons name="logo-google" size={20} color="#EA4335" />
-                <Text style={styles.socialButtonText}>Continue with Google</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.socialButton}>
-                <Ionicons name="logo-apple" size={20} color={darkTheme.colors.white} />
-                <Text style={styles.socialButtonText}>Continue with Apple</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
 
           {/* Sign Up Link */}
           <View style={styles.signUpSection}>
@@ -387,46 +367,6 @@ const styles = StyleSheet.create({
   },
   errorActions: {
     gap: darkTheme.spacing.sm,
-  },
-  // Social Section
-  socialSection: {
-    marginBottom: darkTheme.spacing.xxxl,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: darkTheme.spacing.xl,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: darkTheme.colors.border,
-  },
-  dividerText: {
-    fontSize: darkTheme.fontSize.sm,
-    color: darkTheme.colors.textSecondary,
-    paddingHorizontal: darkTheme.spacing.md,
-    backgroundColor: darkTheme.colors.background,
-  },
-  socialButtons: {
-    gap: darkTheme.spacing.md,
-  },
-  socialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: darkTheme.colors.card,
-    borderWidth: 1,
-    borderColor: darkTheme.colors.border,
-    borderRadius: darkTheme.borderRadius.lg,
-    paddingVertical: darkTheme.spacing.md,
-    paddingHorizontal: darkTheme.spacing.md,
-    gap: darkTheme.spacing.md,
-  },
-  socialButtonText: {
-    fontSize: darkTheme.fontSize.md,
-    fontWeight: darkTheme.fontWeight.medium,
-    color: darkTheme.colors.textPrimary,
   },
   // Sign Up Section
   signUpSection: {

@@ -60,6 +60,7 @@ func main() {
 	videos.Get("/search/suggestions", handlers.GetSearchSuggestions)
 	videos.Get("/trending", handlers.GetTrendingVideos)
 	videos.Get("/recommendations/:user_id", handlers.GetRecommendations)
+	videos.Get("/user/:user_id", middleware.JWTMiddleware(), handlers.GetUserVideos)
 	videos.Get("/:id", middleware.OptionalJWTMiddleware(), handlers.GetVideo)
 	videos.Get("/:id/stream", handlers.StreamVideo)
 	videos.Get("/:id/thumbnail/:size", handlers.GetThumbnail)

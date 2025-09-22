@@ -104,10 +104,15 @@ class VideoService {
           video && 
           video.id && 
           typeof video.id === 'number' &&
-          array.findIndex(v => v.id === video.id) === index // Remove duplicates
+          array.findIndex(v => v && v.id === video.id) === index // Remove duplicates
         );
         
         response.data.videos = validVideos;
+      } else {
+        // Ensure we always have a videos array
+        if (response.data) {
+          response.data.videos = [];
+        }
       }
       
       return { data: response.data, success: true };
@@ -126,6 +131,39 @@ class VideoService {
     } catch (error: any) {
       return {
         error: { message: error.response?.data?.error || 'Failed to fetch video' },
+        success: false
+      };
+    }
+  }
+
+  async getUserVideos(userId: number, params: VideoListParams = {}): Promise<VideoApiResponse<PaginatedVideoResponse>> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.page) queryParams.append('page', params.page.toString());
+      if (params.limit) queryParams.append('limit', params.limit.toString());
+      if (params.sort_by) queryParams.append('sort_by', params.sort_by);
+      if (params.order) queryParams.append('order', params.order);
+
+      const response: AxiosResponse<PaginatedVideoResponse> = await videoApi.get(
+        `/api/v1/videos/user/${userId}?${queryParams.toString()}`
+      );
+      
+      // Filter out invalid videos and ensure unique IDs
+      if (response.data && response.data.videos) {
+        const validVideos = response.data.videos.filter((video, index, array) => 
+          video && 
+          video.id && 
+          typeof video.id === 'number' &&
+          array.findIndex(v => v.id === video.id) === index // Remove duplicates
+        );
+        
+        response.data.videos = validVideos;
+      }
+      
+      return { data: response.data, success: true };
+    } catch (error: any) {
+      return {
+        error: { message: error.response?.data?.error || 'Failed to fetch user videos' },
         success: false
       };
     }

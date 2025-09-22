@@ -805,6 +805,172 @@ func GetTrendingVideos(c *fiber.Ctx) error {
 	})
 }
 
+// GetUserVideos retrieves videos uploaded by a specific user
+// @Summary Get user's videos
+// @Description Get paginated list of videos uploaded by a specific user (requires authentication)
+// @Tags videos
+// @Produce json
+// @Param user_id path int true "User ID"
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Param sort_by query string false "Sort by: newest, oldest, most_viewed, duration" default(newest)
+// @Param order query string false "Sort order: asc, desc" default(desc)
+// @Success 200 {object} models.PaginatedVideoResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/videos/user/{user_id} [get]
+func GetUserVideos(c *fiber.Ctx) error {
+	userIDStr := c.Params("user_id")
+	requestedUserID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid user ID",
+		})
+	}
+
+	// Get authenticated user ID from JWT token
+	authenticatedUserID, exists := middleware.GetUserID(c)
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Authentication required",
+		})
+	}
+
+	// Users can only access their own videos
+	if authenticatedUserID != uint(requestedUserID) {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Access denied: You can only view your own videos",
+		})
+	}
+
+	// Debug logging
+	fmt.Printf("=== GET USER VIDEOS DEBUG ===\n")
+	fmt.Printf("Requested User ID: %d\n", requestedUserID)
+	fmt.Printf("Authenticated User ID: %d\n", authenticatedUserID)
+
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	sortBy := c.Query("sort_by", "newest")
+	order := c.Query("order", "desc")
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+
+	offset := (page - 1) * limit
+
+	// Build query for user's videos only
+	query := database.DB.Model(&models.Video{}).Preload("Category").Where("uploaded_by = ?", requestedUserID)
+
+	// Debug: Check total videos in database
+	var totalVideosInDB int64
+	database.DB.Model(&models.Video{}).Count(&totalVideosInDB)
+	fmt.Printf("Total videos in database: %d\n", totalVideosInDB)
+
+	// Debug: Check videos for this specific user
+	var userVideoCount int64
+	database.DB.Model(&models.Video{}).Where("uploaded_by = ?", requestedUserID).Count(&userVideoCount)
+	fmt.Printf("Videos for user %d: %d\n", requestedUserID, userVideoCount)
+
+	// Debug: Show all videos with their uploaded_by values
+	var allVideos []models.Video
+	database.DB.Select("id, title, uploaded_by").Find(&allVideos)
+	fmt.Printf("All videos in database:\n")
+	for _, v := range allVideos {
+		fmt.Printf("  Video ID: %d, Title: %s, Uploaded By: %d\n", v.ID, v.Title, v.UploadedBy)
+	}
+
+	// Apply sorting
+	var orderClause string
+	switch sortBy {
+	case "oldest":
+		orderClause = "created_at ASC"
+	case "most_viewed":
+		if order == "asc" {
+			orderClause = "view_count ASC"
+		} else {
+			orderClause = "view_count DESC"
+		}
+	case "duration":
+		if order == "asc" {
+			orderClause = "duration ASC"
+		} else {
+			orderClause = "duration DESC"
+		}
+	default: // newest
+		if order == "asc" {
+			orderClause = "created_at ASC"
+		} else {
+			orderClause = "created_at DESC"
+		}
+	}
+
+	// Get total count
+	var total int64
+	query.Count(&total)
+
+	// Get videos
+	var videos []models.Video
+	if err := query.Offset(offset).Limit(limit).Order(orderClause).Find(&videos).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Failed to retrieve user videos",
+		})
+	}
+
+	// Fetch uploader display name (should be the same for all videos since they're from one user)
+	uploaderDisplayName := utils.FetchUserDisplayName(uint(requestedUserID))
+	if uploaderDisplayName == "" {
+		uploaderDisplayName = fmt.Sprintf("User %d", requestedUserID)
+	}
+
+	// Convert to response format
+	videoResponses := make([]models.VideoResponse, len(videos))
+	for i, video := range videos {
+		categoryName := ""
+		if video.Category != nil {
+			categoryName = video.Category.Name
+		}
+
+		videoResponses[i] = models.VideoResponse{
+			ID:                  video.ID,
+			Title:               video.Title,
+			Description:         video.Description,
+			ThumbnailPath:       video.ThumbnailPath,
+			Thumbnails: models.Thumbnails{
+				Small:  video.ThumbnailSmall,
+				Medium: video.ThumbnailMedium,
+				Large:  video.ThumbnailLarge,
+			},
+			Duration:            video.Duration,
+			FileSize:            video.FileSize,
+			Format:              video.Format,
+			CategoryID:          video.CategoryID,
+			CategoryName:        categoryName,
+			UploadedBy:          video.UploadedBy,
+			UploaderDisplayName: uploaderDisplayName,
+			ViewCount:           video.ViewCount,
+			CreatedAt:           video.CreatedAt,
+			UpdatedAt:           video.UpdatedAt,
+		}
+	}
+
+	pages := int(math.Ceil(float64(total) / float64(limit)))
+
+	response := models.PaginatedVideoResponse{
+		Videos: videoResponses,
+		Total:  total,
+		Page:   page,
+		Limit:  limit,
+		Pages:  pages,
+	}
+
+	return c.JSON(response)
+}
+
 // GetRecommendations provides personalized video recommendations for a user
 // @Summary Get personalized recommendations
 // @Description Get video recommendations based on user's watch history

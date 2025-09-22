@@ -24,12 +24,24 @@ const api = axios.create({
 // Add auth token to requests
 api.interceptors.request.use(async (config) => {
   try {
-    const token = await AsyncStorage.getItem('authToken');
+    console.log('=== PLAYLIST SERVICE REQUEST ===');
+    console.log('Request URL:', config.url);
+    console.log('Request Method:', config.method?.toUpperCase());
+    
+    const token = await AsyncStorage.getItem('auth_token');
+    console.log('Auth Token Found:', token ? 'YES' : 'NO');
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('Authorization Header Set:', `Bearer ${token.substring(0, 20)}...`);
+    } else {
+      console.log('❌ No auth token found in AsyncStorage');
     }
+    
+    console.log('Final Headers:', config.headers);
+    console.log('=== REQUEST SENT ===');
   } catch (error) {
-    console.error('Error getting auth token:', error);
+    console.error('❌ Error getting auth token:', error);
   }
   return config;
 });

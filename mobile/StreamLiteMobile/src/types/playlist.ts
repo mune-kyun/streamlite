@@ -9,6 +9,7 @@ export interface Playlist {
   video_count: number;
   created_at: string;
   updated_at: string;
+  first_video_thumbnail?: string;
 }
 
 export interface PlaylistVideo {

@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import PlaylistService from '../services/playlistService';
 import { Playlist, CreatePlaylistRequest, UpdatePlaylistRequest } from '../types/playlist';
+import { config } from '../config/environment';
 import { darkTheme } from '../styles/theme';
 
 interface PlaylistsScreenProps {
@@ -361,13 +362,22 @@ export const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ navigation }) 
                 onPress={() => navigateToPlaylist(playlist)}
               >
                 <View style={styles.playlistThumbnail}>
-                  <View style={styles.thumbnailPlaceholder}>
-                    <Ionicons 
-                      name="musical-notes" 
-                      size={24} 
-                      color={darkTheme.colors.textSecondary} 
+                  {playlist.first_video_thumbnail ? (
+                    <Image 
+                      source={{ uri: `${config.API_ENDPOINTS.VIDEO_SERVICE}${playlist.first_video_thumbnail}` }} 
+                      style={styles.thumbnailImage}
+                      resizeMode="cover"
+                      onError={() => console.log('Thumbnail load error for playlist:', playlist.id)}
                     />
-                  </View>
+                  ) : (
+                    <View style={styles.thumbnailPlaceholder}>
+                      <Ionicons 
+                        name="musical-notes" 
+                        size={24} 
+                        color={darkTheme.colors.textSecondary} 
+                      />
+                    </View>
+                  )}
                   <View style={styles.playOverlay}>
                     <Ionicons 
                       name="play" 
@@ -551,6 +561,10 @@ const styles = StyleSheet.create({
     backgroundColor: darkTheme.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
   },
   playOverlay: {
     position: 'absolute',

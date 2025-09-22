@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import PlaylistService from '../services/playlistService';
 import { Playlist, CreatePlaylistRequest } from '../types/playlist';
+import { darkTheme } from '../styles/theme';
 
 interface AddToPlaylistModalProps {
   visible: boolean;
@@ -137,7 +138,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
       </View>
       
       {addingToPlaylist === item.id ? (
-        <ActivityIndicator size="small" color="#007bff" />
+        <ActivityIndicator size="small" color={darkTheme.colors.accent} />
       ) : (
         <Text style={styles.addButton}>+</Text>
       )}
@@ -178,8 +179,8 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
           <Switch
             value={newPlaylistIsPublic}
             onValueChange={setNewPlaylistIsPublic}
-            trackColor={{ false: '#767577', true: '#007bff' }}
-            thumbColor={newPlaylistIsPublic ? '#ffffff' : '#f4f3f4'}
+            trackColor={{ false: darkTheme.colors.gray500, true: darkTheme.colors.accent }}
+            thumbColor={newPlaylistIsPublic ? darkTheme.colors.white : darkTheme.colors.gray100}
           />
         </View>
       </View>
@@ -246,7 +247,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
           <View style={styles.content}>
             {loading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#007bff" />
+                <ActivityIndicator size="large" color={darkTheme.colors.accent} />
                 <Text style={styles.loadingText}>Loading playlists...</Text>
               </View>
             ) : (
@@ -269,96 +270,93 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: darkTheme.colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#ffffff',
+    paddingHorizontal: darkTheme.spacing.lg,
+    paddingVertical: darkTheme.spacing.md,
+    backgroundColor: darkTheme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: darkTheme.colors.border,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: darkTheme.fontSize.lg,
+    fontWeight: darkTheme.fontWeight.semibold,
+    color: darkTheme.colors.textPrimary,
   },
   cancelButton: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: darkTheme.fontSize.md,
+    color: darkTheme.colors.textSecondary,
   },
   newButton: {
-    fontSize: 16,
-    color: '#007bff',
-    fontWeight: '600',
+    fontSize: darkTheme.fontSize.md,
+    color: darkTheme.colors.accent,
+    fontWeight: darkTheme.fontWeight.semibold,
   },
   videoInfo: {
-    backgroundColor: '#ffffff',
-    padding: 16,
+    backgroundColor: darkTheme.colors.surface,
+    padding: darkTheme.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: darkTheme.colors.border,
   },
   videoTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
+    fontSize: darkTheme.fontSize.md,
+    fontWeight: darkTheme.fontWeight.medium,
+    color: darkTheme.colors.textPrimary,
     lineHeight: 22,
   },
   content: {
     flex: 1,
   },
   listContainer: {
-    padding: 16,
+    padding: darkTheme.spacing.lg,
   },
   playlistItem: {
-    backgroundColor: '#ffffff',
+    backgroundColor: darkTheme.colors.card,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    marginBottom: 8,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    padding: darkTheme.spacing.lg,
+    marginBottom: darkTheme.spacing.sm,
+    borderRadius: darkTheme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: darkTheme.colors.border,
   },
   playlistInfo: {
     flex: 1,
   },
   playlistName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: darkTheme.fontSize.md,
+    fontWeight: darkTheme.fontWeight.semibold,
+    color: darkTheme.colors.textPrimary,
     marginBottom: 4,
   },
   playlistVideoCount: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
   },
   addButton: {
     fontSize: 24,
-    color: '#007bff',
+    color: darkTheme.colors.accent,
     fontWeight: 'bold',
-    marginLeft: 12,
+    marginLeft: darkTheme.spacing.md,
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: darkTheme.spacing.huge,
   },
   emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: darkTheme.fontSize.lg,
+    fontWeight: darkTheme.fontWeight.semibold,
+    color: darkTheme.colors.textPrimary,
+    marginBottom: darkTheme.spacing.sm,
   },
   emptyStateText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
     textAlign: 'center',
   },
   loadingContainer: {
@@ -367,38 +365,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
+    marginTop: darkTheme.spacing.lg,
+    fontSize: darkTheme.fontSize.md,
+    color: darkTheme.colors.textSecondary,
   },
   createForm: {
     flex: 1,
-    padding: 16,
+    padding: darkTheme.spacing.lg,
   },
   createFormTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 20,
+    fontSize: darkTheme.fontSize.xl,
+    fontWeight: darkTheme.fontWeight.semibold,
+    color: darkTheme.colors.textPrimary,
+    marginBottom: darkTheme.spacing.xl,
   },
   formGroup: {
-    marginBottom: 16,
+    marginBottom: darkTheme.spacing.lg,
   },
   formLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: darkTheme.fontSize.md,
+    fontWeight: darkTheme.fontWeight.medium,
+    color: darkTheme.colors.textPrimary,
+    marginBottom: darkTheme.spacing.sm,
   },
   formInput: {
-    backgroundColor: '#ffffff',
+    backgroundColor: darkTheme.colors.card,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: '#333',
+    borderColor: darkTheme.colors.border,
+    borderRadius: darkTheme.borderRadius.md,
+    paddingHorizontal: darkTheme.spacing.md,
+    paddingVertical: darkTheme.spacing.sm,
+    fontSize: darkTheme.fontSize.md,
+    color: darkTheme.colors.textPrimary,
   },
   textArea: {
     height: 60,
@@ -412,27 +410,27 @@ const styles = StyleSheet.create({
   formButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 24,
+    marginTop: darkTheme.spacing.xl,
   },
   cancelButtonText: {
-    fontSize: 16,
-    color: '#666',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    fontSize: darkTheme.fontSize.md,
+    color: darkTheme.colors.textSecondary,
+    paddingHorizontal: darkTheme.spacing.xl,
+    paddingVertical: darkTheme.spacing.md,
   },
   createButton: {
-    backgroundColor: '#007bff',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: darkTheme.colors.accent,
+    paddingHorizontal: darkTheme.spacing.xl,
+    paddingVertical: darkTheme.spacing.md,
+    borderRadius: darkTheme.borderRadius.md,
   },
   createButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: darkTheme.colors.white,
+    fontSize: darkTheme.fontSize.md,
+    fontWeight: darkTheme.fontWeight.semibold,
   },
   disabledButton: {
-    backgroundColor: '#ccc',
+    backgroundColor: darkTheme.colors.gray600,
   },
 });
 
