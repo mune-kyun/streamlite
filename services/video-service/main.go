@@ -49,6 +49,9 @@ func main() {
 	// Swagger documentation
 	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
+	// Static file serving for storage directory
+	app.Static("/storage", "./storage")
+
 	// API routes
 	api := app.Group("/api/v1")
 	

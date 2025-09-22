@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import PlaylistService from '../services/playlistService';
 import { Playlist, PlaylistWithVideos, PlaylistVideoWithMeta } from '../types/playlist';
+import { videoService } from '../services/videoService';
 import { darkTheme } from '../styles/theme';
 
 export const PlaylistDetailScreen: React.FC<any> = ({ navigation, route }) => {
@@ -280,7 +281,7 @@ export const PlaylistDetailScreen: React.FC<any> = ({ navigation, route }) => {
                 <View style={styles.videoThumbnail}>
                   {video.video_thumbnail ? (
                     <Image
-                      source={{ uri: `http://localhost:8083${video.video_thumbnail}` }}
+                      source={{ uri: videoService.getThumbnailUrl(video.video_thumbnail) }}
                       style={styles.thumbnailImage}
                       resizeMode="cover"
                     />
