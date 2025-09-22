@@ -19,7 +19,7 @@ interface VideoThumbnailProps {
 
 const VideoThumbnail: React.FC<VideoThumbnailProps> = ({
   video,
-  size = 'medium',
+  size = 'large',
   onPress,
   showTitle = true,
   showDuration = true,
