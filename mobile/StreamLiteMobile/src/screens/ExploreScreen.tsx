@@ -41,13 +41,24 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({ navigation, route 
 
   const loadData = async () => {
     try {
+      // Detect hashtag search
+      const isHashtagSearch = searchQuery.startsWith('#');
+      const searchParams: any = {
+        limit: 20,
+        category: selectedCategory || undefined
+      };
+
+      if (isHashtagSearch) {
+        // Remove # prefix and search in tags
+        searchParams.tags = searchQuery.substring(1);
+      } else if (searchQuery) {
+        // Regular search in title/description
+        searchParams.search = searchQuery;
+      }
+
       // Load videos and categories in parallel
       const [videosResponse, categoriesResponse] = await Promise.all([
-        videoService.getVideos({ 
-          limit: 20,
-          search: searchQuery || undefined,
-          category: selectedCategory || undefined
-        }),
+        videoService.getVideos(searchParams),
         videoService.getCategories()
       ]);
 
@@ -170,7 +181,7 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({ navigation, route 
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search videos, channels..."
+            placeholder={searchQuery.startsWith('#') ? "Searching tags..." : "Search videos, channels, or use #hashtag"}
             placeholderTextColor={darkTheme.colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -179,6 +190,11 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({ navigation, route 
             onBlur={() => setSearchFocused(false)}
             returnKeyType="search"
           />
+          {searchQuery.startsWith('#') && (
+            <View style={styles.hashtagIndicator}>
+              <Ionicons name="pricetag" size={14} color={darkTheme.colors.accent} />
+            </View>
+          )}
         </View>
       </View>
 
@@ -325,6 +341,12 @@ const styles = StyleSheet.create({
     fontSize: darkTheme.fontSize.md,
     color: darkTheme.colors.textPrimary,
     padding: 0,
+  },
+  hashtagIndicator: {
+    marginLeft: darkTheme.spacing.sm,
+    padding: darkTheme.spacing.xs,
+    backgroundColor: darkTheme.colors.accent + '20',
+    borderRadius: 12,
   },
   categoriesSection: {
     backgroundColor: darkTheme.colors.background,

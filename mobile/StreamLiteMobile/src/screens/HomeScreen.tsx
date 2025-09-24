@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { videoService } from '../services/videoService';
@@ -41,13 +42,24 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, route }) => 
 
   const loadData = async () => {
     try {
+      // Detect hashtag search
+      const isHashtagSearch = searchQuery.startsWith('#');
+      const searchParams: any = {
+        limit: 20,
+        category: selectedCategory || undefined
+      };
+
+      if (isHashtagSearch) {
+        // Remove # prefix and search in tags
+        searchParams.tags = searchQuery.substring(1);
+      } else if (searchQuery) {
+        // Regular search in title/description
+        searchParams.search = searchQuery;
+      }
+
       // Load videos and categories in parallel
       const [videosResponse, categoriesResponse] = await Promise.all([
-        videoService.getVideos({ 
-          limit: 20,
-          search: searchQuery || undefined,
-          category: selectedCategory || undefined
-        }),
+        videoService.getVideos(searchParams),
         videoService.getCategories()
       ]);
 
@@ -70,6 +82,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, route }) => 
   useEffect(() => {
     loadData();
   }, [searchQuery, selectedCategory]);
+
+  // Refetch videos whenever the screen is focused (e.g., returning from upload)
+  useFocusEffect(
+    useCallback(() => {
+      // Only refetch if we're not already loading and not in the middle of a search/category change
+      if (!loading && !refreshing) {
+        loadData();
+      }
+    }, [loading, refreshing])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -186,7 +208,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, route }) => 
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search videos, channels..."
+            placeholder={searchQuery.startsWith('#') ? "Searching tags..." : "Search videos, channels, or use #hashtag"}
             placeholderTextColor={darkTheme.colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -195,6 +217,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, route }) => 
             onBlur={() => setSearchFocused(false)}
             returnKeyType="search"
           />
+          {searchQuery.startsWith('#') && (
+            <View style={styles.hashtagIndicator}>
+              <Ionicons name="pricetag" size={14} color={darkTheme.colors.accent} />
+            </View>
+          )}
         </View>
       </View>
 
@@ -396,6 +423,12 @@ const styles = StyleSheet.create({
     fontSize: darkTheme.fontSize.md,
     color: darkTheme.colors.textPrimary,
     padding: 0,
+  },
+  hashtagIndicator: {
+    marginLeft: darkTheme.spacing.sm,
+    padding: darkTheme.spacing.xs,
+    backgroundColor: darkTheme.colors.accent + '20',
+    borderRadius: 12,
   },
   categoriesSection: {
     backgroundColor: darkTheme.colors.background,

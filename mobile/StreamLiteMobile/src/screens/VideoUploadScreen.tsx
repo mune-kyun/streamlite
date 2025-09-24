@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useForm, Controller } from 'react-hook-form';
 import { videoService } from '../services/videoService';
-import { Category, UploadProgress } from '../types/video';
+import { Category, UploadProgress, Video } from '../types/video';
 import { darkTheme } from '../styles/theme';
 import Button from '../components/Button';
 import { CustomHeader } from '../components/CustomHeader';
@@ -39,7 +39,6 @@ interface SelectedFile {
   mimeType: string;
 }
 
-type VisibilityType = 'public' | 'unlisted' | 'private';
 
 export const VideoUploadScreen: React.FC<VideoUploadScreenProps> = ({ navigation }) => {
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
@@ -49,10 +48,11 @@ export const VideoUploadScreen: React.FC<VideoUploadScreenProps> = ({ navigation
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [visibility, setVisibility] = useState<VisibilityType>('public');
   const [tags, setTags] = useState('');
   const [titleLength, setTitleLength] = useState(0);
   const [descriptionLength, setDescriptionLength] = useState(0);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [uploadedVideo, setUploadedVideo] = useState<Video | null>(null);
 
   const {
     control,
@@ -126,6 +126,18 @@ export const VideoUploadScreen: React.FC<VideoUploadScreenProps> = ({ navigation
     setShowCategoryModal(false);
   };
 
+  // Helper function to format tags with proper comma separation
+  const formatTags = (tagString: string): string => {
+    if (!tagString.trim()) return '';
+    
+    // Split by comma, trim whitespace, filter empty strings, and rejoin
+    return tagString
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0)
+      .join(', ');
+  };
+
   const onSubmit = async (data: UploadFormData) => {
     if (!selectedFile) {
       Alert.alert('Error', 'Please select a video file');
@@ -141,8 +153,16 @@ export const VideoUploadScreen: React.FC<VideoUploadScreenProps> = ({ navigation
     setUploadProgress({ loaded: 0, total: selectedFile.size, percentage: 0 });
 
     try {
+      // Format tags with proper comma separation
+      const formattedTags = formatTags(tags);
+      
       console.log('Starting upload with file:', selectedFile);
-      console.log('Upload data:', { title: data.title, description: data.description, category_id: data.category_id });
+      console.log('Upload data:', { 
+        title: data.title, 
+        description: data.description, 
+        category_id: data.category_id,
+        tags: formattedTags
+      });
 
       // Create a proper File object for React Native FormData
       const fileData = {
@@ -156,6 +176,7 @@ export const VideoUploadScreen: React.FC<VideoUploadScreenProps> = ({ navigation
         title: data.title,
         description: data.description || '',
         category_id: data.category_id,
+        tags: formattedTags,
       };
 
       const response = await videoService.uploadVideo(
@@ -171,25 +192,8 @@ export const VideoUploadScreen: React.FC<VideoUploadScreenProps> = ({ navigation
       if (response.success && response.data) {
         setUploadProgress(null);
         setUploading(false);
-        
-        Alert.alert(
-          'Upload Successful!',
-          'Your video has been uploaded successfully.',
-          [
-            {
-              text: 'View Video',
-              onPress: () => {
-                navigation.navigate('VideoPlayer', { video: response.data });
-              },
-            },
-            {
-              text: 'Upload Another',
-              onPress: () => {
-                resetForm();
-              },
-            },
-          ]
-        );
+        setUploadedVideo(response.data);
+        setShowSuccessModal(true);
       } else {
         throw new Error(response.error?.message || 'Upload failed');
       }
@@ -214,11 +218,25 @@ export const VideoUploadScreen: React.FC<VideoUploadScreenProps> = ({ navigation
     setSelectedFile(null);
     setSelectedCategory(null);
     setUploadProgress(null);
-    setVisibility('public');
     setTags('');
     setTitleLength(0);
     setDescriptionLength(0);
+    setShowSuccessModal(false);
+    setUploadedVideo(null);
     reset();
+  };
+
+  const handleBackToHomepage = () => {
+    setShowSuccessModal(false);
+    // Navigate to Home tab and trigger refresh
+    navigation.navigate('Home', { refresh: true });
+  };
+
+  const handleViewVideo = () => {
+    if (uploadedVideo) {
+      setShowSuccessModal(false);
+      navigation.navigate('VideoPlayer', { video: uploadedVideo });
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -229,26 +247,6 @@ export const VideoUploadScreen: React.FC<VideoUploadScreenProps> = ({ navigation
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const visibilityOptions = [
-    {
-      value: 'public' as VisibilityType,
-      icon: 'globe-outline',
-      title: 'Public',
-      description: 'Anyone can watch',
-    },
-    {
-      value: 'unlisted' as VisibilityType,
-      icon: 'link-outline',
-      title: 'Unlisted',
-      description: 'Only with link',
-    },
-    {
-      value: 'private' as VisibilityType,
-      icon: 'lock-closed-outline',
-      title: 'Private',
-      description: 'Only you can watch',
-    },
-  ];
 
   return (
     <View style={styles.container}>
@@ -399,53 +397,6 @@ export const VideoUploadScreen: React.FC<VideoUploadScreenProps> = ({ navigation
               )}
             </View>
 
-            {/* Thumbnail Section */}
-            <View style={styles.inputSection}>
-              <Text style={styles.label}>Thumbnail</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.thumbnailScroll}>
-                <TouchableOpacity style={styles.customThumbnail}>
-                  <Ionicons name="add" size={20} color={darkTheme.colors.accent} />
-                  <Text style={styles.thumbnailLabel}>Custom</Text>
-                </TouchableOpacity>
-                <View style={styles.autoThumbnail}>
-                  <View style={styles.thumbnailPlaceholder} />
-                  <Text style={styles.thumbnailLabel}>Auto 1</Text>
-                </View>
-                <View style={styles.autoThumbnail}>
-                  <View style={styles.thumbnailPlaceholder} />
-                  <Text style={styles.thumbnailLabel}>Auto 2</Text>
-                </View>
-                <View style={styles.autoThumbnail}>
-                  <View style={styles.thumbnailPlaceholder} />
-                  <Text style={styles.thumbnailLabel}>Auto 3</Text>
-                </View>
-              </ScrollView>
-            </View>
-
-            {/* Visibility Section */}
-            <View style={styles.inputSection}>
-              <Text style={styles.label}>Visibility</Text>
-              <View style={styles.visibilityOptions}>
-                {visibilityOptions.map((option) => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={styles.visibilityOption}
-                    onPress={() => setVisibility(option.value)}
-                  >
-                    <View style={styles.visibilityLeft}>
-                      <Ionicons name={option.icon as any} size={20} color={darkTheme.colors.textSecondary} />
-                      <View style={styles.visibilityText}>
-                        <Text style={styles.visibilityTitle}>{option.title}</Text>
-                        <Text style={styles.visibilityDescription}>{option.description}</Text>
-                      </View>
-                    </View>
-                    <View style={styles.radioButton}>
-                      {visibility === option.value && <View style={styles.radioButtonSelected} />}
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
 
             {/* Category Section */}
             <View style={styles.inputSection}>
@@ -524,6 +475,45 @@ export const VideoUploadScreen: React.FC<VideoUploadScreenProps> = ({ navigation
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Upload Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.successModalOverlay}>
+          <View style={styles.successModalContent}>
+            {/* Success Icon */}
+            <View style={styles.successIconContainer}>
+              <Ionicons name="checkmark-circle" size={64} color="#22c55e" />
+            </View>
+            
+            {/* Success Message */}
+            <Text style={styles.successTitle}>Upload Successful!</Text>
+            <Text style={styles.successMessage}>
+              Your video has been uploaded successfully and is now available for viewing.
+            </Text>
+            
+            {/* Action Buttons */}
+            <View style={styles.successButtonContainer}>
+              <Button
+                title="Back to Homepage"
+                onPress={handleBackToHomepage}
+                variant="primary"
+                style={[styles.successButton, styles.successButtonPrimary]}
+              />
+              <Button
+                title="View Video"
+                onPress={handleViewVideo}
+                variant="outline"
+                style={styles.successButton}
+              />
+            </View>
           </View>
         </View>
       </Modal>
@@ -702,86 +692,6 @@ const styles = StyleSheet.create({
     fontSize: darkTheme.fontSize.xs,
     color: darkTheme.colors.textSecondary,
   },
-  // Thumbnail Styles
-  thumbnailScroll: {
-    flexDirection: 'row',
-  },
-  customThumbnail: {
-    width: 96,
-    height: 64,
-    backgroundColor: darkTheme.colors.card,
-    borderWidth: 2,
-    borderColor: darkTheme.colors.accent,
-    borderRadius: darkTheme.borderRadius.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: darkTheme.spacing.md,
-  },
-  autoThumbnail: {
-    marginRight: darkTheme.spacing.md,
-    alignItems: 'center',
-  },
-  thumbnailPlaceholder: {
-    width: 96,
-    height: 64,
-    backgroundColor: darkTheme.colors.surface,
-    borderWidth: 2,
-    borderColor: darkTheme.colors.border,
-    borderRadius: darkTheme.borderRadius.lg,
-    marginBottom: darkTheme.spacing.xs,
-  },
-  thumbnailLabel: {
-    fontSize: darkTheme.fontSize.xs,
-    color: darkTheme.colors.textSecondary,
-    textAlign: 'center',
-  },
-  // Visibility Styles
-  visibilityOptions: {
-    gap: darkTheme.spacing.md,
-  },
-  visibilityOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: darkTheme.colors.card,
-    borderWidth: 1,
-    borderColor: darkTheme.colors.border,
-    borderRadius: darkTheme.borderRadius.lg,
-    padding: darkTheme.spacing.md,
-  },
-  visibilityLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: darkTheme.spacing.md,
-  },
-  visibilityText: {
-    flex: 1,
-  },
-  visibilityTitle: {
-    fontSize: darkTheme.fontSize.md,
-    fontWeight: darkTheme.fontWeight.medium,
-    color: darkTheme.colors.textPrimary,
-  },
-  visibilityDescription: {
-    fontSize: darkTheme.fontSize.xs,
-    color: darkTheme.colors.textSecondary,
-  },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: darkTheme.colors.accent,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radioButtonSelected: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: darkTheme.colors.accent,
-  },
   // Category Styles
   categoryButton: {
     backgroundColor: darkTheme.colors.card,
@@ -861,5 +771,61 @@ const styles = StyleSheet.create({
   categoryItemDescription: {
     fontSize: darkTheme.fontSize.sm,
     color: darkTheme.colors.textSecondary,
+  },
+  // Success Modal Styles
+  successModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: darkTheme.spacing.lg,
+  },
+  successModalContent: {
+    backgroundColor: darkTheme.colors.surface,
+    borderRadius: darkTheme.borderRadius.xl,
+    padding: darkTheme.spacing.xxxl,
+    alignItems: 'center',
+    maxWidth: 320,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  successIconContainer: {
+    marginBottom: darkTheme.spacing.lg,
+    padding: darkTheme.spacing.md,
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderRadius: 50,
+  },
+  successTitle: {
+    fontSize: darkTheme.fontSize.xl,
+    fontWeight: darkTheme.fontWeight.bold,
+    color: darkTheme.colors.textPrimary,
+    marginBottom: darkTheme.spacing.md,
+    textAlign: 'center',
+  },
+  successMessage: {
+    fontSize: darkTheme.fontSize.md,
+    color: darkTheme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: darkTheme.spacing.xl,
+  },
+  successButtonContainer: {
+    width: '100%',
+    gap: darkTheme.spacing.md,
+  },
+  successButton: {
+    width: '100%',
+    paddingVertical: darkTheme.spacing.md,
+  },
+  successButtonPrimary: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
   },
 });

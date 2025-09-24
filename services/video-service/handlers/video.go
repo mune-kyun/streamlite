@@ -64,6 +64,7 @@ func UploadVideo(c *fiber.Ctx) error {
 	title := c.FormValue("title")
 	description := c.FormValue("description")
 	categoryIDStr := c.FormValue("category_id")
+	tags := c.FormValue("tags")
 
 	if title == "" {
 		return c.Status(400).JSON(fiber.Map{
@@ -126,6 +127,7 @@ func UploadVideo(c *fiber.Ctx) error {
 		Format:      strings.TrimPrefix(ext, "."),
 		CategoryID:  uint(categoryID),
 		UploadedBy:  userID,
+		Tags:        tags,
 	}
 
 	if err := database.DB.Create(&video).Error; err != nil {
@@ -170,6 +172,7 @@ func UploadVideo(c *fiber.Ctx) error {
 		CategoryName: video.Category.Name,
 		UploadedBy:   video.UploadedBy,
 		ViewCount:    video.ViewCount,
+		Tags:         video.Tags,
 		CreatedAt:    video.CreatedAt,
 		UpdatedAt:    video.UpdatedAt,
 	}
@@ -202,6 +205,7 @@ func GetVideos(c *fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	categoryID := c.Query("category")
 	search := c.Query("search")
+	tags := c.Query("tags")
 	
 	// Advanced filter parameters
 	durationMinStr := c.Query("duration_min")
@@ -233,6 +237,11 @@ func GetVideos(c *fiber.Ctx) error {
 	if search != "" {
 		searchTerm := "%" + search + "%"
 		query = query.Where("title LIKE ? OR description LIKE ?", searchTerm, searchTerm)
+	}
+
+	if tags != "" {
+		tagTerm := "%" + tags + "%"
+		query = query.Where("tags LIKE ?", tagTerm)
 	}
 
 	// Apply duration filters
@@ -418,6 +427,7 @@ func GetVideo(c *fiber.Ctx) error {
 		UploadedBy:          video.UploadedBy,
 		UploaderDisplayName: uploaderDisplayName,
 		ViewCount:           video.ViewCount, // Return actual count without increment
+		Tags:                video.Tags,
 		CreatedAt:           video.CreatedAt,
 		UpdatedAt:           video.UpdatedAt,
 	}

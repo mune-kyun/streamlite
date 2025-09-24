@@ -22,6 +22,7 @@ type Video struct {
 	CategoryID      uint      `json:"category_id"`
 	UploadedBy      uint      `json:"uploaded_by"` // User ID from auth service
 	ViewCount       int       `json:"view_count" gorm:"default:0"`
+	Tags            string    `json:"tags"` // Comma-separated tags
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 	DeletedAt       gorm.DeletedAt `json:"-" gorm:"index"`
@@ -76,6 +77,7 @@ type VideoUploadRequest struct {
 	Title       string `json:"title" validate:"required,min=1,max=255"`
 	Description string `json:"description" validate:"max=1000"`
 	CategoryID  uint   `json:"category_id" validate:"required"`
+	Tags        string `json:"tags" validate:"max=500"` // Comma-separated tags
 }
 
 // VideoUpdateRequest represents the request payload for video update
@@ -83,6 +85,7 @@ type VideoUpdateRequest struct {
 	Title       string `json:"title" validate:"min=1,max=255"`
 	Description string `json:"description" validate:"max=1000"`
 	CategoryID  uint   `json:"category_id"`
+	Tags        string `json:"tags" validate:"max=500"` // Comma-separated tags
 }
 
 // CategoryRequest represents the request payload for category operations
@@ -109,6 +112,7 @@ type VideoResponse struct {
 	LikeCount           int       `json:"like_count"`
 	DislikeCount        int       `json:"dislike_count"`
 	UserLikeStatus      *string   `json:"user_like_status,omitempty"` // "like", "dislike", or null
+	Tags                string    `json:"tags"` // Comma-separated tags
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`
 }

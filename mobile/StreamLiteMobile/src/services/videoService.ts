@@ -83,6 +83,7 @@ class VideoService {
       if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.category) queryParams.append('category', params.category.toString());
       if (params.search) queryParams.append('search', params.search);
+      if (params.tags) queryParams.append('tags', params.tags);
       
       // Advanced search filters
       if (params.duration_min) queryParams.append('duration_min', params.duration_min.toString());
@@ -221,6 +222,12 @@ class VideoService {
       formData.append('title', videoData.title);
       formData.append('description', videoData.description);
       formData.append('category_id', videoData.category_id.toString());
+      
+      // Add tags if provided
+      if (videoData.tags) {
+        formData.append('tags', videoData.tags);
+        console.log('VideoService: Tags added to FormData:', videoData.tags);
+      }
 
       console.log('VideoService: FormData prepared, making request...');
 

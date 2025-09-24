@@ -19,6 +19,7 @@ export interface Video {
   category_name?: string;
   uploaded_by: number;
   view_count: number;
+  tags?: string; // Comma-separated tags
   created_at: string;
   updated_at: string;
 }
@@ -47,6 +48,7 @@ export interface VideoUploadRequest {
   title: string;
   description: string;
   category_id: number;
+  tags?: string; // Comma-separated tags
   file: File | any; // File object for upload
 }
 
@@ -75,6 +77,7 @@ export interface VideoListParams {
   limit?: number;
   category?: number;
   search?: string;
+  tags?: string;
   // Advanced search filters
   duration_min?: number;
   duration_max?: number;

@@ -598,6 +598,23 @@ export const VideoPlayerScreen: React.FC = () => {
         </View>
       </View>
 
+      {/* Tags Section */}
+      {videoData.tags && videoData.tags.trim() && (
+        <View style={styles.tagsSection}>
+          <View style={styles.tagsContainer}>
+            {videoData.tags.split(',').map((tag, index) => {
+              const trimmedTag = tag.trim();
+              if (!trimmedTag) return null;
+              return (
+                <TouchableOpacity key={index} style={styles.tagChip}>
+                  <Text style={styles.tagText}>#{trimmedTag}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
+
       {/* Description Section */}
       <View style={styles.descriptionSection}>
         <Text style={styles.descriptionText} numberOfLines={3}>
@@ -1248,6 +1265,31 @@ const styles = StyleSheet.create({
   },
   subscribeButton: {
     paddingHorizontal: darkTheme.spacing.lg,
+  },
+  // Tags Styles
+  tagsSection: {
+    paddingHorizontal: darkTheme.spacing.md,
+    paddingVertical: darkTheme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: darkTheme.colors.border,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: darkTheme.spacing.sm,
+  },
+  tagChip: {
+    backgroundColor: darkTheme.colors.accent,
+    paddingHorizontal: darkTheme.spacing.sm,
+    paddingVertical: darkTheme.spacing.xs,
+    borderRadius: darkTheme.borderRadius.md,
+    marginRight: darkTheme.spacing.xs,
+    marginBottom: darkTheme.spacing.xs,
+  },
+  tagText: {
+    fontSize: darkTheme.fontSize.xs,
+    color: darkTheme.colors.white,
+    fontWeight: darkTheme.fontWeight.medium,
   },
   // Description Styles
   descriptionSection: {
