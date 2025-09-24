@@ -73,6 +73,9 @@ func main() {
 	videos.Get("/:id/comments/count", handlers.GetCommentCount)
 	videos.Get("/:id/likes", middleware.OptionalJWTMiddleware(), handlers.GetVideoLikeStats)
 
+	// View tracking route (public - no authentication required)
+	videos.Post("/:id/view", handlers.TrackVideoView)
+
 	// Protected routes (authentication required)
 	videos.Post("/upload", middleware.JWTMiddleware(), handlers.UploadVideo)
 	videos.Put("/:id", middleware.JWTMiddleware(), handlers.UpdateVideo)

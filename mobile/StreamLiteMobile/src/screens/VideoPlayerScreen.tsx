@@ -286,6 +286,16 @@ export const VideoPlayerScreen: React.FC = () => {
         if (status.isPlaying) {
           await videoRef.current.pauseAsync();
         } else {
+          // Track view when video starts playing
+          try {
+            const result = await videoService.trackView(video.id);
+            if (result.success) {
+              console.log('View tracked successfully');
+            }
+          } catch (error) {
+            console.error('Failed to track view:', error);
+          }
+          
           await videoRef.current.playAsync();
         }
       }

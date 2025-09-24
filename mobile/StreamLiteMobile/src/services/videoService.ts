@@ -572,6 +572,19 @@ class VideoService {
       };
     }
   }
+
+  // View tracking
+  async trackView(videoId: number): Promise<VideoApiResponse> {
+    try {
+      const response: AxiosResponse = await videoApi.post(`/api/v1/videos/${videoId}/view`);
+      return { data: response.data, success: true };
+    } catch (error: any) {
+      return {
+        error: { message: error.response?.data?.error || 'Failed to track view' },
+        success: false
+      };
+    }
+  }
 }
 
 // Export singleton instance

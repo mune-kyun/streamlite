@@ -392,9 +392,6 @@ func GetVideo(c *fiber.Ctx) error {
 		})
 	}
 
-	// Increment view count
-	database.DB.Model(&video).Update("view_count", video.ViewCount+1)
-
 	categoryName := ""
 	if video.Category != nil {
 		categoryName = video.Category.Name
@@ -420,7 +417,7 @@ func GetVideo(c *fiber.Ctx) error {
 		CategoryName:        categoryName,
 		UploadedBy:          video.UploadedBy,
 		UploaderDisplayName: uploaderDisplayName,
-		ViewCount:           video.ViewCount + 1, // Return updated count
+		ViewCount:           video.ViewCount, // Return actual count without increment
 		CreatedAt:           video.CreatedAt,
 		UpdatedAt:           video.UpdatedAt,
 	}
