@@ -61,7 +61,6 @@ const createConfig = (): AppConfig => {
       AUTH_SERVICE: env.EXPO_PUBLIC_AUTH_SERVICE_URL || `http://${defaultHost}:8001`,
       USER_SERVICE: env.EXPO_PUBLIC_USER_SERVICE_URL || `http://${defaultHost}:8002`,
       VIDEO_SERVICE: env.EXPO_PUBLIC_VIDEO_SERVICE_URL || `http://${defaultHost}:8003`,
-      STREAMING_SERVICE: env.EXPO_PUBLIC_STREAMING_SERVICE_URL || `http://${defaultHost}:8004`,
     },
     
     TIMEOUTS: {
@@ -118,7 +117,7 @@ try {
 }
 
 // Utility functions for configuration access
-export const getApiEndpoint = (service: 'auth' | 'user' | 'video' | 'streaming'): string => {
+export const getApiEndpoint = (service: 'auth' | 'user' | 'video'): string => {
   switch (service) {
     case 'auth':
       return config.API_ENDPOINTS.AUTH_SERVICE;
@@ -126,8 +125,6 @@ export const getApiEndpoint = (service: 'auth' | 'user' | 'video' | 'streaming')
       return config.API_ENDPOINTS.USER_SERVICE;
     case 'video':
       return config.API_ENDPOINTS.VIDEO_SERVICE;
-    case 'streaming':
-      return config.API_ENDPOINTS.STREAMING_SERVICE;
     default:
       throw new Error(`Unknown service: ${service}`);
   }

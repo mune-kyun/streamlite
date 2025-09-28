@@ -7,8 +7,7 @@ This document lists all backend endpoints being used in the StreamLite React Nat
 ### Backend Services
 - **Auth Service**: `http://192.168.2.195:8001` - Authentication and user management
 - **User Service**: `http://192.168.2.195:8002` - User profiles, preferences, playlists, watch history
-- **Video Service**: `http://192.168.2.195:8003` - Video management, categories, comments, upload
-- **Streaming Service**: `http://192.168.2.195:8004` - Video streaming, analytics, quality management
+- **Video Service**: `http://192.168.2.195:8003` - Video management, categories, comments, upload, video streaming
 
 ---
 
@@ -156,23 +155,6 @@ This document lists all backend endpoints being used in the StreamLite React Nat
 
 ---
 
-## Streaming & Analytics (Future Implementation)
-
-### StreamingService.ts
-**Services**: Video Service (Port 8003), Streaming Service (Port 8004)
-
-| Endpoint | Method | Purpose | Request Data | Response Data |
-|----------|--------|---------|--------------|---------------|
-| `/api/v1/videos/{videoId}/process-streaming` | POST | Process video for streaming | `{ format?, qualities?, priority? }` | `{ job_id, status, message, estimated_time_minutes }` |
-| `/api/v1/videos/{videoId}/streaming-status` | GET | Get streaming status | None | `{ video_id, status, streaming_info?, message }` |
-| `/api/v1/streaming/qualities/{videoId}` | GET | Get available qualities | None | `{ video_id, format, qualities[], defaultQuality }` |
-| `/api/v1/videos/{videoId}/manifest/{format}` | GET | Get streaming manifest | None | Manifest file |
-| `/api/v1/streaming/manifest/{videoId}/{format}` | GET | Get direct manifest | None | Manifest file |
-| `/api/v1/analytics/playback` | POST | Record playback event | `{ video_id, user_id?, session_id, event_type, quality?, position?, ... }` | None |
-| `/api/v1/analytics/stats/{videoId}` | GET | Get streaming stats | Query: `period=7d` | Analytics data |
-| `/api/v1/analytics/bandwidth` | GET | Get bandwidth stats | Query: `period=7d` | Bandwidth data |
-
----
 
 ## Additional Video Service Endpoints (Available but not yet used)
 
@@ -219,11 +201,10 @@ This document lists all backend endpoints being used in the StreamLite React Nat
 ### Total Endpoints by Service:
 - **Auth Service**: 5 endpoints (authentication, token management)
 - **User Service**: 12 endpoints (profiles, preferences, playlists)
-- **Video Service**: 20 endpoints (videos, categories, comments, upload)
-- **Streaming Service**: 8 endpoints (streaming, analytics)
+- **Video Service**: 20 endpoints (videos, categories, comments, upload, streaming)
 
-### Total Endpoints Used: 45 active endpoints
-### Total Endpoints Available: 67 endpoints (including unused ones)
+### Total Endpoints Used: 37 active endpoints
+### Total Endpoints Available: 59 endpoints (including unused ones)
 
 ### Screens by Endpoint Usage:
 1. **VideoPlayerScreen**: 5 endpoints (most complex)

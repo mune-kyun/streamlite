@@ -10,7 +10,7 @@ React Native App
 │  Direct Service Communication Pattern   │
 ├─────────────────────────────────────────┤
 │  🔐 Auth Service    👤 User Service     │
-│  🎬 Video Service   📺 Streaming Service │
+│  🎬 Video Service                       │
 └─────────────────────────────────────────┘
        ↓
    SQLite Databases
@@ -19,9 +19,8 @@ React Native App
 ### Core Microservices
 1. **🔐 Auth Service**: User authentication, JWT generation, OAuth integration
 2. **👤 User Service**: Profile management, watch history, user data
-3. **🎬 Video Service**: Upload handling, metadata storage, thumbnail generation
-4. **📺 Streaming Service**: Video chunk delivery (HLS/DASH), bandwidth optimization
-5. **React Native App**: Mobile-first frontend with direct service communication
+3. **🎬 Video Service**: Upload handling, metadata storage, thumbnail generation, video streaming
+4. **React Native App**: Mobile-first frontend with direct service communication
 
 ## Key Design Patterns
 
@@ -37,15 +36,15 @@ React Native App
 - **Role-based access control** (User, Admin) enforced per service
 - **OAuth integration** for social login options
 
-### 3. Video Management Pattern (Video + Streaming Services)
-- **Service separation**: Upload/metadata (Video Service) vs Delivery (Streaming Service)
-- **Metadata isolation**: Video Service handles file info, thumbnails, categories
-- **Streaming optimization**: Dedicated service for HLS/DASH chunk delivery
-- **Upload pipeline**: Validation → Processing → Storage → Metadata → Streaming prep
+### 3. Video Management Pattern (Video Service)
+- **Unified video handling**: Video Service handles upload, metadata, storage, and streaming
+- **Metadata management**: Video Service handles file info, thumbnails, categories
+- **Direct streaming**: Video Service provides direct video streaming capabilities
+- **Upload pipeline**: Validation → Processing → Storage → Metadata → Ready for streaming
 
 ### 4. User Data Pattern (User Service)
 - **Profile centralization**: All user data managed by User Service
-- **Watch history tracking**: Integration with Streaming Service for analytics
+- **Watch history tracking**: Integration with Video Service for analytics
 - **Cross-service user context**: User Service provides user data to other services
 
 ### 5. Data Flow Patterns
@@ -58,14 +57,13 @@ Other Services → Auth Service (token validation) → Authorized Response
 
 #### Video Upload Flow
 ```
-React Native → Video Service → File Processing → Metadata Storage
-Video Service → Streaming Service (prepare for delivery)
+React Native → Video Service → File Processing → Metadata Storage → Ready for streaming
 ```
 
 #### Video Playback Flow
 ```
-React Native → Streaming Service → Auth validation → Video chunks
-Streaming Service → User Service (update watch history)
+React Native → Video Service → Auth validation → Video streaming
+Video Service → User Service (update watch history)
 ```
 
 ## Service Relationships
@@ -84,8 +82,6 @@ Auth Service (Independent)
 User Service → Auth Service (token validation)
     ↑
 Video Service → Auth Service (authorization)
-    ↑
-Streaming Service → Auth Service + User Service (access + history)
 ```
 
 ### Database Schema per Service
@@ -102,9 +98,6 @@ Streaming Service → Auth Service + User Service (access + history)
 - **videos**: id, title, description, file_path, thumbnail, category_id
 - **categories**: id, name, description
 
-#### Streaming Service (SQLite)
-- **video_streams**: video_id, format, quality, chunk_path
-- **view_analytics**: video_id, user_id, view_count, last_viewed
 
 ## Critical Implementation Paths
 
@@ -120,10 +113,10 @@ Streaming Service → Auth Service + User Service (access + history)
 - Set up CORS configuration for React Native
 - Create shared authentication middleware pattern
 
-### 3. Video Pipeline (Video + Streaming Services)
-- Video Service: Upload, validation, metadata storage
-- Streaming Service: Chunk preparation, HLS/DASH delivery
-- Integration between services for seamless video flow
+### 3. Video Pipeline (Video Service)
+- Video Service: Upload, validation, metadata storage, and streaming
+- Direct video streaming from Video Service
+- Unified video flow for seamless experience
 - Performance optimization for mobile streaming
 
 ### 4. User Experience (User Service + React Native)
@@ -140,6 +133,6 @@ Streaming Service → Auth Service + User Service (access + history)
 ## Scalability Considerations
 - **Independent service scaling** based on load patterns
 - **Database per service** for data isolation
-- **Horizontal scaling** for high-traffic services (Streaming)
+- **Horizontal scaling** for high-traffic services (Video)
 - **Service mesh readiness** for advanced networking
 - **Event-driven patterns** for future real-time features

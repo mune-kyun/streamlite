@@ -87,7 +87,7 @@
 ## Active Decisions and Considerations
 
 ### Architecture Decisions (FINALIZED)
-- **Microservices**: 4 independent services with direct communication
+- **Microservices**: 3 independent services with direct communication
 - **No API Gateway**: Services communicate directly for simplicity
 - **Database per Service**: SQLite isolation for each microservice
 - **Mobile-First**: React Native for cross-platform mobile development

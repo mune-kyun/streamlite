@@ -4,7 +4,6 @@ export interface ApiEndpoints {
   AUTH_SERVICE: string;
   USER_SERVICE: string;
   VIDEO_SERVICE: string;
-  STREAMING_SERVICE: string;
 }
 
 export interface Timeouts {
@@ -32,7 +31,6 @@ export interface EnvironmentVariables {
   EXPO_PUBLIC_AUTH_SERVICE_URL?: string;
   EXPO_PUBLIC_USER_SERVICE_URL?: string;
   EXPO_PUBLIC_VIDEO_SERVICE_URL?: string;
-  EXPO_PUBLIC_STREAMING_SERVICE_URL?: string;
   EXPO_PUBLIC_API_TIMEOUT?: string;
   EXPO_PUBLIC_UPLOAD_TIMEOUT?: string;
   EXPO_PUBLIC_DEBUG_API?: string;
