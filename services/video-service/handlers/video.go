@@ -152,6 +152,18 @@ func UploadVideo(c *fiber.Ctx) error {
 		database.DB.Save(&video)
 	}
 
+	// Generate 240p low quality video synchronously
+	lowQualityPath, err := utils.GenerateLowQualityVideo(filePath, video.ID)
+	if err != nil {
+		// Log error but don't fail the upload - low quality can be generated later
+		fmt.Printf("Warning: Failed to generate 240p video for video %d: %v\n", video.ID, err)
+	} else {
+		// Update video record with low quality path
+		video.LowQualityPath = &lowQualityPath
+		database.DB.Save(&video)
+		fmt.Printf("Successfully generated and saved 240p video for video %d\n", video.ID)
+	}
+
 	// Load category for response
 	database.DB.Preload("Category").First(&video, video.ID)
 
@@ -165,6 +177,7 @@ func UploadVideo(c *fiber.Ctx) error {
 			Medium: video.ThumbnailMedium,
 			Large:  video.ThumbnailLarge,
 		},
+		LowQualityAvailable: video.LowQualityPath != nil,
 		Duration:     video.Duration,
 		FileSize:     video.FileSize,
 		Format:       video.Format,
@@ -419,6 +432,7 @@ func GetVideo(c *fiber.Ctx) error {
 			Medium: video.ThumbnailMedium,
 			Large:  video.ThumbnailLarge,
 		},
+		LowQualityAvailable: video.LowQualityPath != nil,
 		Duration:            video.Duration,
 		FileSize:            video.FileSize,
 		Format:              video.Format,
@@ -603,6 +617,55 @@ func StreamVideo(c *fiber.Ctx) error {
 
 	// Send the file
 	return c.SendFile(video.FilePath)
+}
+
+// StreamLowQualityVideo serves low quality (240p) video files for streaming
+// @Summary Stream low quality video file
+// @Description Stream low quality (240p) video file by ID for slow networks
+// @Tags videos
+// @Produce application/octet-stream
+// @Param id path int true "Video ID"
+// @Success 200 {file} binary
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/videos/{id}/stream/low [get]
+func StreamLowQualityVideo(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var video models.Video
+	if err := database.DB.First(&video, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "Video not found",
+		})
+	}
+
+	// Check if low quality video exists
+	if video.LowQualityPath == nil || *video.LowQualityPath == "" {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "Low quality video not available for this video",
+		})
+	}
+
+	// Check if low quality file exists
+	info, err := os.Stat(*video.LowQualityPath)
+	if os.IsNotExist(err) {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "Low quality video file not found",
+		})
+	}
+
+	// Log file size in MB
+	sizeMB := float64(info.Size()) / (1024 * 1024)
+	fmt.Printf("(Stream Low Quality Video) Video ID: %s, Size: %.2f MB\n", id, sizeMB)
+
+	// Set appropriate headers for video streaming
+	c.Set("Content-Type", "video/"+video.Format)
+	c.Set("Accept-Ranges", "bytes")
+	c.Set("Cache-Control", "public, max-age=3600")
+	c.Set("X-Video-Quality", "240p") // Custom header to indicate quality
+
+	// Send the low quality file
+	return c.SendFile(*video.LowQualityPath)
 }
 
 // GetThumbnail serves thumbnail images for videos

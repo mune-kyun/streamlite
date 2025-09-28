@@ -540,6 +540,22 @@ class VideoService {
     return `${VIDEO_SERVICE_URL}/${thumbnailPath}`;
   }
 
+  // Video streaming URLs for quality selection
+  getVideoStreamUrl(videoId: number, quality: 'normal' | 'low' = 'normal'): string {
+    if (quality === 'low') {
+      return `${VIDEO_SERVICE_URL}/api/v1/videos/${videoId}/stream/low`;
+    }
+    return `${VIDEO_SERVICE_URL}/api/v1/videos/${videoId}/stream`;
+  }
+
+  getLowQualityVideoUrl(videoId: number): string {
+    return `${VIDEO_SERVICE_URL}/api/v1/videos/${videoId}/stream/low`;
+  }
+
+  getNormalQualityVideoUrl(videoId: number): string {
+    return `${VIDEO_SERVICE_URL}/api/v1/videos/${videoId}/stream`;
+  }
+
   // Like/dislike operations
   async likeVideo(videoId: number, isLike: boolean): Promise<VideoApiResponse> {
     try {

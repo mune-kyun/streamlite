@@ -12,6 +12,7 @@ type Video struct {
 	Title           string    `json:"title" gorm:"not null"`
 	Description     string    `json:"description"`
 	FilePath        string    `json:"file_path" gorm:"not null"`
+	LowQualityPath  *string   `json:"low_quality_path,omitempty" gorm:"type:varchar(500)"` // 240p version for slow networks
 	ThumbnailPath   string    `json:"thumbnail_path"` // Legacy field for backward compatibility
 	ThumbnailSmall  string    `json:"thumbnail_small"`
 	ThumbnailMedium string    `json:"thumbnail_medium"`
@@ -101,6 +102,7 @@ type VideoResponse struct {
 	Description         string    `json:"description"`
 	ThumbnailPath       string    `json:"thumbnail_path"` // Legacy field for backward compatibility
 	Thumbnails          Thumbnails `json:"thumbnails"`
+	LowQualityAvailable bool      `json:"low_quality_available"`
 	Duration            int       `json:"duration"`
 	FileSize            int64     `json:"file_size"`
 	Format              string    `json:"format"`

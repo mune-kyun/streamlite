@@ -66,6 +66,7 @@ func main() {
 	videos.Get("/user/:user_id", middleware.JWTMiddleware(), handlers.GetUserVideos)
 	videos.Get("/:id", middleware.OptionalJWTMiddleware(), handlers.GetVideo)
 	videos.Get("/:id/stream", handlers.StreamVideo)
+	videos.Get("/:id/stream/low", handlers.StreamLowQualityVideo)
 	videos.Get("/:id/thumbnail/:size", handlers.GetThumbnail)
 	videos.Get("/:id/streaming-status", handlers.GetStreamingStatus)
 	videos.Get("/:id/manifest/:format", handlers.GetStreamingManifest)

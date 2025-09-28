@@ -12,6 +12,7 @@ export interface Video {
   description: string;
   thumbnail_path: string; // Legacy field for backward compatibility
   thumbnails: Thumbnails;
+  low_quality_available?: boolean; // 240p version available for slow networks
   duration: number; // in seconds
   file_size: number; // in bytes
   format: string;

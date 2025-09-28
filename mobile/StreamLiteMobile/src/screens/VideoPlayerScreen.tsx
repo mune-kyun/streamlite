@@ -13,6 +13,7 @@ import {
   Image,
   TextInput,
   KeyboardAvoidingView,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
@@ -80,6 +81,11 @@ export const VideoPlayerScreen: React.FC = () => {
   const [currentPlaylist, setCurrentPlaylist] = useState<PlaylistWithVideos | null>(playlist?.data || null);
   const [currentVideoIndex, setCurrentVideoIndex] = useState<number>(playlist?.currentIndex || 0);
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(true);
+
+  // Quality selection state
+  const [currentQuality, setCurrentQuality] = useState<'normal' | 'low'>('normal');
+  const [showQualityModal, setShowQualityModal] = useState(false);
+  const [switchingQuality, setSwitchingQuality] = useState(false);
 
   // Auto-hide controls after 3 seconds
   useEffect(() => {
@@ -500,7 +506,70 @@ export const VideoPlayerScreen: React.FC = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const videoUri = `${getApiEndpoint('video')}/api/v1/videos/${video.id}/stream`;
+  // Quality switching functionality
+  const handleQualityChange = async (newQuality: 'normal' | 'low') => {
+    if (newQuality === currentQuality) {
+      setShowQualityModal(false);
+      return;
+    }
+
+    // Check if low quality is available
+    if (newQuality === 'low' && !videoData.low_quality_available) {
+      Alert.alert(
+        'Quality Not Available', 
+        '240p quality is not available for this video.',
+        [{ text: 'OK', onPress: () => setShowQualityModal(false) }]
+      );
+      return;
+    }
+
+    setSwitchingQuality(true);
+    setShowQualityModal(false);
+
+    try {
+      // Remember current playback position
+      const currentPosition = (status?.isLoaded ? status.positionMillis : 0) || 0;
+      const wasPlaying = (status?.isLoaded ? status.isPlaying : false) || false;
+
+      // Pause current video
+      if (videoRef.current && status?.isLoaded) {
+        await videoRef.current.pauseAsync();
+      }
+
+      // Update quality state
+      setCurrentQuality(newQuality);
+
+      // Wait for the video component to reload with new source
+      setTimeout(async () => {
+        try {
+          if (videoRef.current) {
+            // Set the position to where we were
+            await videoRef.current.setPositionAsync(currentPosition);
+            
+            // Resume playback if it was playing before
+            if (wasPlaying) {
+              await videoRef.current.playAsync();
+            }
+          }
+        } catch (error) {
+          console.error('Error resuming playback after quality change:', error);
+        } finally {
+          setSwitchingQuality(false);
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Error switching quality:', error);
+      setSwitchingQuality(false);
+      Alert.alert('Error', 'Failed to switch video quality');
+    }
+  };
+
+  // Get video URI based on current quality
+  const getVideoUri = () => {
+    return videoService.getVideoStreamUrl(video.id, currentQuality);
+  };
+
+  const videoUri = getVideoUri();
 
   // Helper functions for date formatting
   const formatDate = (dateString: string) => {
@@ -941,6 +1010,9 @@ export const VideoPlayerScreen: React.FC = () => {
                   <TouchableOpacity style={styles.controlButton}>
                     <Ionicons name="volume-high" size={18} color={darkTheme.colors.white} />
                   </TouchableOpacity>
+                  <TouchableOpacity style={styles.controlButton} onPress={() => setShowQualityModal(true)}>
+                    <Ionicons name="settings" size={18} color={darkTheme.colors.white} />
+                  </TouchableOpacity>
                   <TouchableOpacity style={styles.controlButton} onPress={handleFullscreen}>
                     <Ionicons name="expand" size={18} color={darkTheme.colors.white} />
                   </TouchableOpacity>
@@ -1023,6 +1095,93 @@ export const VideoPlayerScreen: React.FC = () => {
         videoId={video.id}
         videoTitle={video.title || 'Untitled Video'}
       />
+
+      {/* Quality Selection Modal */}
+      <Modal
+        visible={showQualityModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowQualityModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.qualityModal}>
+            <View style={styles.qualityModalHeader}>
+              <Text style={styles.qualityModalTitle}>Video Quality</Text>
+              <TouchableOpacity 
+                style={styles.qualityModalClose}
+                onPress={() => setShowQualityModal(false)}
+              >
+                <Ionicons name="close" size={20} color={darkTheme.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.qualityOptions}>
+              <TouchableOpacity
+                style={[
+                  styles.qualityOption,
+                  currentQuality === 'normal' && styles.qualityOptionSelected
+                ]}
+                onPress={() => handleQualityChange('normal')}
+                disabled={switchingQuality}
+              >
+                <View style={styles.qualityOptionContent}>
+                  <Text style={[
+                    styles.qualityOptionText,
+                    currentQuality === 'normal' && styles.qualityOptionTextSelected
+                  ]}>
+                    Normal Quality
+                  </Text>
+                  <Text style={styles.qualityOptionDescription}>
+                    Original video quality
+                  </Text>
+                </View>
+                {currentQuality === 'normal' && (
+                  <Ionicons name="checkmark-circle" size={20} color={darkTheme.colors.accent} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.qualityOption,
+                  currentQuality === 'low' && styles.qualityOptionSelected,
+                  !videoData.low_quality_available && styles.qualityOptionDisabled
+                ]}
+                onPress={() => handleQualityChange('low')}
+                disabled={switchingQuality || !videoData.low_quality_available}
+              >
+                <View style={styles.qualityOptionContent}>
+                  <Text style={[
+                    styles.qualityOptionText,
+                    currentQuality === 'low' && styles.qualityOptionTextSelected,
+                    !videoData.low_quality_available && styles.qualityOptionTextDisabled
+                  ]}>
+                    240p Quality
+                  </Text>
+                  <Text style={[
+                    styles.qualityOptionDescription,
+                    !videoData.low_quality_available && styles.qualityOptionTextDisabled
+                  ]}>
+                    {videoData.low_quality_available ? 'Lower bandwidth usage' : 'Not available for this video'}
+                  </Text>
+                </View>
+                {currentQuality === 'low' && videoData.low_quality_available && (
+                  <Ionicons name="checkmark-circle" size={20} color={darkTheme.colors.accent} />
+                )}
+                {!videoData.low_quality_available && (
+                  <Ionicons name="ban" size={20} color={darkTheme.colors.textSecondary} />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {switchingQuality && (
+              <View style={styles.switchingIndicator}>
+                <ActivityIndicator size="small" color={darkTheme.colors.accent} />
+                <Text style={styles.switchingText}>Switching quality...</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -1615,6 +1774,88 @@ const styles = StyleSheet.create({
   },
   nextVideoMeta: {
     fontSize: darkTheme.fontSize.xs,
+    color: darkTheme.colors.textSecondary,
+  },
+  // Quality Selection Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qualityModal: {
+    backgroundColor: darkTheme.colors.surface,
+    borderRadius: darkTheme.borderRadius.lg,
+    margin: darkTheme.spacing.xl,
+    maxWidth: 300,
+    width: '90%',
+  },
+  qualityModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: darkTheme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: darkTheme.colors.border,
+  },
+  qualityModalTitle: {
+    fontSize: darkTheme.fontSize.lg,
+    fontWeight: darkTheme.fontWeight.semibold,
+    color: darkTheme.colors.textPrimary,
+  },
+  qualityModalClose: {
+    padding: darkTheme.spacing.sm,
+  },
+  qualityOptions: {
+    padding: darkTheme.spacing.lg,
+  },
+  qualityOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: darkTheme.spacing.md,
+    paddingHorizontal: darkTheme.spacing.lg,
+    borderRadius: darkTheme.borderRadius.md,
+    marginBottom: darkTheme.spacing.sm,
+    backgroundColor: darkTheme.colors.card,
+    borderWidth: 1,
+    borderColor: darkTheme.colors.border,
+  },
+  qualityOptionSelected: {
+    backgroundColor: darkTheme.colors.accent + '20',
+    borderColor: darkTheme.colors.accent,
+  },
+  qualityOptionDisabled: {
+    opacity: 0.5,
+  },
+  qualityOptionContent: {
+    flex: 1,
+  },
+  qualityOptionText: {
+    fontSize: darkTheme.fontSize.md,
+    fontWeight: darkTheme.fontWeight.medium,
+    color: darkTheme.colors.textPrimary,
+    marginBottom: darkTheme.spacing.xs,
+  },
+  qualityOptionTextSelected: {
+    color: darkTheme.colors.accent,
+  },
+  qualityOptionTextDisabled: {
+    color: darkTheme.colors.textSecondary,
+  },
+  qualityOptionDescription: {
+    fontSize: darkTheme.fontSize.sm,
+    color: darkTheme.colors.textSecondary,
+  },
+  switchingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: darkTheme.spacing.lg,
+    gap: darkTheme.spacing.sm,
+  },
+  switchingText: {
+    fontSize: darkTheme.fontSize.sm,
     color: darkTheme.colors.textSecondary,
   },
 });
