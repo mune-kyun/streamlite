@@ -127,7 +127,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
         <View style={styles.headerContent}>
           <View style={styles.brandContainer}>
             <Ionicons name="logo-youtube" size={24} color={darkTheme.colors.accent} />
-            <Text style={styles.brandText}>VidStream</Text>
+            <Text style={styles.brandText}>VidLite</Text>
           </View>
         </View>
       </View>
@@ -142,7 +142,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
             <View style={styles.heroIcon}>
               <Ionicons name="person-add" size={24} color={darkTheme.colors.accent} />
             </View>
-            <Text style={styles.heroTitle}>Join VidStream</Text>
+            <Text style={styles.heroTitle}>Join VidLite</Text>
             <Text style={styles.heroSubtitle}>Create your account to start sharing and discovering amazing videos</Text>
           </View>
 

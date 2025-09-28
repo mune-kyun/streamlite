@@ -130,7 +130,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         <View style={styles.headerContent}>
           <View style={styles.brandContainer}>
             <Ionicons name="logo-youtube" size={24} color={darkTheme.colors.accent} />
-            <Text style={styles.brandText}>VidStream</Text>
+            <Text style={styles.brandText}>VidLite</Text>
           </View>
         </View>
       </View>
@@ -146,7 +146,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               <Ionicons name="person" size={24} color={darkTheme.colors.accent} />
             </View>
             <Text style={styles.heroTitle}>Welcome Back</Text>
-            <Text style={styles.heroSubtitle}>Sign in to your VidStream account to continue</Text>
+            <Text style={styles.heroSubtitle}>Sign in to your VidLite account to continue</Text>
           </View>
 
           {/* Login Form */}

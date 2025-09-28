@@ -1,0 +1,96 @@
+<html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>window.FontAwesomeConfig = { autoReplaceSvg: 'nest'};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        ::-webkit-scrollbar { display: none;}
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+        }
+    </style>
+    <script>tailwind.config = {
+  "theme": {
+    "extend": {
+      "colors": {
+        "dark-bg": "#0f0f23",
+        "dark-surface": "#1a1a2e",
+        "dark-card": "#16213e",
+        "accent": "#e94560",
+        "text-primary": "#f5f7fa",
+        "text-secondary": "#a0a3bd"
+      },
+      "fontFamily": {}
+    }
+  }
+};</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap"><style>
+  .highlighted-section {
+    outline: 2px solid #3F20FB;
+    background-color: rgba(63, 32, 251, 0.1);
+  }
+
+  .edit-button {
+    position: absolute;
+    z-index: 1000;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  </style></head>
+<body class="gradient-bg text-text-primary overflow-hidden">
+
+<div id="splash-container" class="max-w-sm mx-auto h-screen flex flex-col items-center justify-center">
+    
+    <div id="logo-section" class="text-center mb-12">
+        <div class="relative mb-6">
+            <div class="w-24 h-24 mx-auto bg-gradient-to-br from-accent to-red-600 rounded-2xl flex items-center justify-center">
+                <i class="fa-solid fa-play text-white text-3xl ml-1"></i>
+            </div>
+            <div class="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-star text-white text-xs"></i>
+            </div>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-text-primary mb-2">VidLite</h1>
+        <p class="text-text-secondary text-sm">Discover Amazing Videos</p>
+    </div>
+
+    <div id="features-preview" class="px-8 mb-16">
+        <div class="flex items-center justify-center space-x-12 text-center">
+            <div class="flex flex-col items-center space-y-2">
+                <div class="w-10 h-10 bg-dark-surface rounded-full flex items-center justify-center border border-gray-700">
+                    <i class="fa-solid fa-video text-accent text-sm"></i>
+                </div>
+                <span class="text-text-secondary text-xs">Watch</span>
+            </div>
+            
+            <div class="flex flex-col items-center space-y-2">
+                <div class="w-10 h-10 bg-dark-surface rounded-full flex items-center justify-center border border-gray-700">
+                    <i class="fa-solid fa-upload text-accent text-sm"></i>
+                </div>
+                <span class="text-text-secondary text-xs">Upload</span>
+            </div>
+            
+            <div class="flex flex-col items-center space-y-2">
+                <div class="w-10 h-10 bg-dark-surface rounded-full flex items-center justify-center border border-gray-700">
+                    <i class="fa-solid fa-list text-accent text-sm"></i>
+                </div>
+                <span class="text-text-secondary text-xs">Playlist</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+</body></html>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../context/AuthContext';
+import { SplashScreen } from '../screens/SplashScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { RegisterScreen } from '../screens/RegisterScreen';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -225,7 +226,18 @@ const MainStackNavigator: React.FC = () => {
 // Main App Navigator
 export const AppNavigator: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const [showSplash, setShowSplash] = useState(true);
 
+  const handleSplashFinish = () => {
+    setShowSplash(false);
+  };
+
+  // Show splash screen first
+  if (showSplash) {
+    return <SplashScreen onFinish={handleSplashFinish} />;
+  }
+
+  // Show loading screen while auth is loading
   if (isLoading) {
     return <LoadingScreen />;
   }

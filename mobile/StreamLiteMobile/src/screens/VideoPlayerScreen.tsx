@@ -581,7 +581,7 @@ export const VideoPlayerScreen: React.FC = () => {
               <Ionicons name="person-outline" size={20} color={darkTheme.colors.textSecondary} />
             </View>
             <View style={styles.channelDetails}>
-              <Text style={styles.channelName}>{(videoData as any).uploader_display_name || `User ${videoData.uploaded_by}` || 'StreamLite Creator'}</Text>
+              <Text style={styles.channelName}>{(videoData as any).uploader_display_name || `User ${videoData.uploaded_by}` || 'VidLite Creator'}</Text>
               {subscriberCount > 0 && (
                 <Text style={styles.subscriberCount}>{subscriberCount.toLocaleString()} subscribers</Text>
               )}

@@ -164,7 +164,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, route }) => 
               color={darkTheme.colors.accent} 
               style={styles.brandIcon}
             />
-            <Text style={styles.brandText}>VidStream</Text>
+            <Text style={styles.brandText}>VidLite</Text>
           </View>
           
           <View style={styles.headerActions}>
