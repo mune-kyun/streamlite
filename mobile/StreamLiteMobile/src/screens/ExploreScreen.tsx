@@ -153,16 +153,6 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({ navigation, route 
           </View>
           
           <View style={styles.headerActions}>
-            <TouchableOpacity 
-              style={styles.headerButton}
-              onPress={navigateToNotifications}
-            >
-              <Ionicons 
-                name="notifications-outline" 
-                size={18} 
-                color={darkTheme.colors.textSecondary} 
-              />
-            </TouchableOpacity>
           </View>
         </View>
       </View>

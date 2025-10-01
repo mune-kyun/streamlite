@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
   // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: darkTheme.colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: darkTheme.spacing.lg,
@@ -624,11 +624,14 @@ const styles = StyleSheet.create({
     minWidth: 280,
     maxWidth: 320,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: darkTheme.colors.border,
   },
   videoMenuHeader: {
     padding: darkTheme.spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: darkTheme.colors.border,
+    backgroundColor: darkTheme.colors.card,
   },
   videoMenuTitle: {
     fontSize: darkTheme.fontSize.md,
@@ -641,6 +644,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: darkTheme.spacing.lg,
     gap: darkTheme.spacing.md,
+    backgroundColor: darkTheme.colors.surface,
   },
   menuItemText: {
     fontSize: darkTheme.fontSize.md,

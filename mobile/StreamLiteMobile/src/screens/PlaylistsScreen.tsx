@@ -306,16 +306,6 @@ export const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({ navigation }) 
           </View>
           
           <View style={styles.headerActions}>
-            <TouchableOpacity 
-              style={styles.headerButton}
-              onPress={() => navigation.navigate('Explore')}
-            >
-              <Ionicons 
-                name="add" 
-                size={20} 
-                color={darkTheme.colors.accent} 
-              />
-            </TouchableOpacity>
           </View>
         </View>
       </View>

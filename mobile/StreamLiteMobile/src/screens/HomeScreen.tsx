@@ -169,17 +169,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation, route }) => 
           
           <View style={styles.headerActions}>
             <TouchableOpacity 
-              style={styles.headerButton}
-              onPress={navigateToNotifications}
-            >
-              <Ionicons 
-                name="notifications-outline" 
-                size={18} 
-                color={darkTheme.colors.textSecondary} 
-              />
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
               style={styles.userAvatar}
               onPress={navigateToProfile}
             >
@@ -315,13 +304,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: darkTheme.colors.border,
     paddingHorizontal: darkTheme.spacing.lg,
-    paddingBottom: darkTheme.spacing.md,
+    paddingBottom: darkTheme.spacing.sm,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: darkTheme.spacing.lg,
+    marginBottom: darkTheme.spacing.sm,
   },
   brandContainer: {
     flexDirection: 'row',
@@ -399,7 +388,7 @@ const styles = StyleSheet.create({
   },
   searchSection: {
     paddingHorizontal: darkTheme.spacing.lg,
-    paddingVertical: darkTheme.spacing.lg,
+    paddingVertical: darkTheme.spacing.md,
     backgroundColor: darkTheme.colors.background,
   },
   searchContainer: {
@@ -432,7 +421,7 @@ const styles = StyleSheet.create({
   },
   categoriesSection: {
     backgroundColor: darkTheme.colors.background,
-    paddingBottom: darkTheme.spacing.lg,
+    paddingBottom: darkTheme.spacing.md,
   },
   categoriesContainer: {
     paddingHorizontal: darkTheme.spacing.lg,

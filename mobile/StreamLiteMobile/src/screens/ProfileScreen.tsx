@@ -7,8 +7,6 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
-  TextInput,
-  Modal,
   StatusBar,
   Image,
   RefreshControl,
@@ -16,7 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import { userService, Profile, UpdateProfileRequest } from '../services/userService';
+import { userService, Profile } from '../services/userService';
 import { videoService } from '../services/videoService';
 import { Video } from '../types/video';
 import Button from '../components/Button';
@@ -39,13 +37,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'videos' | 'playlists'>('videos');
-  const [editForm, setEditForm] = useState({
-    display_name: '',
-    bio: '',
-    avatar: '',
-  });
 
   // Load user profile and stats on component mount
   useEffect(() => {
@@ -62,20 +54,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     try {
       const userProfile = await userService.getProfile(user.id);
       setProfile(userProfile);
-      setEditForm({
-        display_name: userProfile.display_name || '',
-        bio: userProfile.bio || '',
-        avatar: userProfile.avatar || '',
-      });
     } catch (error: any) {
       // Profile might not exist yet, that's okay
-      console.log('Profile not found, will create on first edit:', error.message);
+      console.log('Profile not found:', error.message);
       setProfile(null);
-      setEditForm({
-        display_name: '',
-        bio: '',
-        avatar: '',
-      });
     } finally {
       setIsLoading(false);
     }
@@ -143,37 +125,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     return num.toString();
   };
 
-  const handleEditProfile = () => {
-    setIsEditModalVisible(true);
-  };
-
-  const handleSaveProfile = async () => {
-    if (!user?.id) return;
-
-    setIsLoading(true);
-    try {
-      const updateData: UpdateProfileRequest = {};
-      
-      if (editForm.display_name.trim()) {
-        updateData.display_name = editForm.display_name.trim();
-      }
-      if (editForm.bio.trim()) {
-        updateData.bio = editForm.bio.trim();
-      }
-      if (editForm.avatar.trim()) {
-        updateData.avatar = editForm.avatar.trim();
-      }
-
-      const updatedProfile = await userService.updateProfile(user.id, updateData);
-      setProfile(updatedProfile);
-      setIsEditModalVisible(false);
-      Alert.alert('Success', 'Profile updated successfully!');
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update profile');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleLogout = async () => {
     console.log('ProfileScreen: Logout button pressed');
@@ -275,9 +226,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                   <Text style={styles.avatarText}>{avatarText}</Text>
                 )}
               </View>
-              <TouchableOpacity style={styles.cameraButton} onPress={handleEditProfile}>
-                <Ionicons name="camera" size={14} color={darkTheme.colors.white} />
-              </TouchableOpacity>
             </View>
             
             <View style={styles.userInfo}>
@@ -327,15 +275,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
         {/* Action Buttons */}
         <View style={styles.actionButtonsSection}>
-          <Button
-            title="Edit Profile"
-            onPress={handleEditProfile}
-            variant="primary"
-            icon="create-outline"
-            style={styles.editButton}
-            fullWidth
-          />
-          
           <Button
             title="Logout"
             onPress={handleLogout}
@@ -473,76 +412,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Edit Profile Modal */}
-      <Modal
-        visible={isEditModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setIsEditModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity
-              onPress={() => setIsEditModalVisible(false)}
-              style={styles.modalCancelButton}
-            >
-              <Text style={styles.modalCancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Edit Profile</Text>
-            <TouchableOpacity
-              onPress={handleSaveProfile}
-              style={styles.modalSaveButton}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color="#007bff" />
-              ) : (
-                <Text style={styles.modalSaveText}>Save</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.modalContent}>
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Display Name</Text>
-              <TextInput
-                style={styles.formInput}
-                value={editForm.display_name}
-                onChangeText={(text) => setEditForm({ ...editForm, display_name: text })}
-                placeholder="Enter your display name"
-                maxLength={100}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Bio</Text>
-              <TextInput
-                style={[styles.formInput, styles.formTextArea]}
-                value={editForm.bio}
-                onChangeText={(text) => setEditForm({ ...editForm, bio: text })}
-                placeholder="Tell us about yourself..."
-                multiline
-                numberOfLines={4}
-                maxLength={500}
-              />
-              <Text style={styles.characterCount}>
-                {editForm.bio.length}/500 characters
-              </Text>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Avatar URL (Optional)</Text>
-              <TextInput
-                style={styles.formInput}
-                value={editForm.avatar}
-                onChangeText={(text) => setEditForm({ ...editForm, avatar: text })}
-                placeholder="https://example.com/avatar.jpg"
-                keyboardType="url"
-              />
-            </View>
-          </ScrollView>
-        </View>
-      </Modal>
     </View>
   );
 };
@@ -588,17 +457,6 @@ const styles = StyleSheet.create({
     fontSize: darkTheme.fontSize.massive,
     fontWeight: darkTheme.fontWeight.bold,
     color: darkTheme.colors.white,
-  },
-  cameraButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: darkTheme.colors.accent,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   userInfo: {
     alignItems: 'center',
@@ -649,9 +507,6 @@ const styles = StyleSheet.create({
     paddingVertical: darkTheme.spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: darkTheme.colors.border,
-  },
-  editButton: {
-    marginBottom: darkTheme.spacing.md,
   },
   logoutButton: {
     marginTop: darkTheme.spacing.sm,
@@ -815,71 +670,5 @@ const styles = StyleSheet.create({
     color: darkTheme.colors.error,
     textAlign: 'center',
     marginTop: darkTheme.spacing.xxxl,
-  },
-  // Modal styles
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  modalCancelButton: {
-    padding: 8,
-  },
-  modalCancelText: {
-    fontSize: 16,
-    color: '#666',
-  },
-  modalSaveButton: {
-    padding: 8,
-  },
-  modalSaveText: {
-    fontSize: 16,
-    color: '#007bff',
-    fontWeight: '600',
-  },
-  modalContent: {
-    flex: 1,
-    padding: 24,
-  },
-  formGroup: {
-    marginBottom: 24,
-  },
-  formLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  formInput: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: '#333',
-  },
-  formTextArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  characterCount: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'right',
-    marginTop: 4,
   },
 });

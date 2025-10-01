@@ -219,17 +219,6 @@ export const SubscriptionScreen: React.FC<SubscriptionScreenProps> = ({ navigati
           
           <View style={styles.headerActions}>
             <TouchableOpacity 
-              style={styles.headerButton}
-              onPress={navigateToNotifications}
-            >
-              <Ionicons 
-                name="notifications-outline" 
-                size={18} 
-                color={darkTheme.colors.textSecondary} 
-              />
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
               style={styles.userAvatar}
               onPress={navigateToProfile}
             >

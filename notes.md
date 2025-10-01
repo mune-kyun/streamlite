@@ -1,7 +1,6 @@
 cd services/auth-service && go run main.go
 cd services/user-service && go run main.go
 cd services/video-service && go run main.go
-cd services/streaming-service && go run main.go
 
 cd mobile/StreamLiteMobile && npm start
 

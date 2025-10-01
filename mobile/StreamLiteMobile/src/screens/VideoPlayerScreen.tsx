@@ -25,6 +25,7 @@ import { PlaylistWithVideos, PlaylistVideoWithMeta } from '../types/playlist';
 import { useAuth } from '../context/AuthContext';
 import CommentsList from '../components/CommentsList';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
+import PlaylistCompleteModal from '../components/PlaylistCompleteModal';
 import Button from '../components/Button';
 import { getApiEndpoint } from '../config/environment';
 import { videoService } from '../services/videoService';
@@ -87,6 +88,9 @@ export const VideoPlayerScreen: React.FC = () => {
   const [showQualityModal, setShowQualityModal] = useState(false);
   const [switchingQuality, setSwitchingQuality] = useState(false);
 
+  // Playlist complete modal state
+  const [showPlaylistCompleteModal, setShowPlaylistCompleteModal] = useState(false);
+
   // Auto-hide controls after 3 seconds
   useEffect(() => {
     if (showControls) {
@@ -114,7 +118,7 @@ export const VideoPlayerScreen: React.FC = () => {
   const handleAutoPlayNext = () => {
     if (!currentPlaylist || currentVideoIndex >= currentPlaylist.videos.length - 1) {
       // End of playlist
-      Alert.alert('Playlist Complete', 'You have reached the end of the playlist.');
+      setShowPlaylistCompleteModal(true);
       return;
     }
 
@@ -1182,6 +1186,12 @@ export const VideoPlayerScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Playlist Complete Modal */}
+      <PlaylistCompleteModal
+        visible={showPlaylistCompleteModal}
+        onClose={() => setShowPlaylistCompleteModal(false)}
+      />
     </KeyboardAvoidingView>
   );
 };
